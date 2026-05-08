@@ -1,0 +1,37 @@
+Package: curveRweights
+Title: Bayesian Precision Weighting from Calibration Curve Uncertainty
+Version: 0.1.0
+Authors@R:
+    person("Michael Scot", "Zens", role = c("aut", "cre"),
+           email = "your.email@example.com")
+Description: Estimates observation-level precision weights from the posterior
+    coefficient of variation (pcov) of calibration curve predictions using a
+    joint location-scale Bayesian regression model.  The scale submodel
+    estimates the power-law relationship sigma_i = phi * pcov_i^beta1, where
+    phi captures baseline variance inflation beyond calibration curve
+    uncertainty and beta1 captures how steeply pcov drives weight
+    differentiation.  A saturated cell-means location model absorbs all
+    systematic experimental effects so that the scale parameters are identified
+    purely from within-cell residual structure.  Weights w_i = 1/sigma_i^2 are
+    then available for downstream weighted least-squares, meta-regression, or
+    survey-weighted rank tests comparing experimental conditions.
+License: AGPL (>= 3) + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1.0)
+Imports:
+    brms (>= 2.19.0),
+    dplyr (>= 1.1.0),
+    rlang,
+    tibble,
+    stats
+Suggests:
+    metafor,
+    survey,
+    usethis,
+    testthat (>= 3.0.0)
+LazyData: true
+URL: https://github.com/yourusername/curveRweights
+BugReports: https://github.com/yourusername/curveRweights/issues
