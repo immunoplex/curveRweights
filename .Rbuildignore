@@ -5,3 +5,6 @@
 ^\.github$
 ^data-raw$
 ^\.gitignore$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

@@ -31,7 +31,11 @@ Suggests:
     metafor,
     survey,
     usethis,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
 LazyData: true
 URL: https://github.com/immunoplex/curveRweights
 BugReports: https://github.com/immunoplex/curveRweights/issues

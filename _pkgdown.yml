@@ -1,0 +1,53 @@
+url: https://immunoplex.github.io/curveRweights/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: "Data Preparation"
+    desc: "Prepare and diagnose calibration curve precision data"
+    contents:
+      - prepare_cv
+      - diagnose_cv
+
+  - title: "Model Fitting"
+    desc: "Fit the Bayesian location-scale model"
+    contents:
+      - fit_saturated_weight
+      - fit_saturated_weight_batch
+
+  - title: "Weight Computation"
+    desc: "Compute and apply precision weights"
+    contents:
+      - compute_saturated_weights
+      - apply_saturated_weights
+
+  - title: "Diagnostics"
+    desc: "Interpret and diagnose weight estimates"
+    contents:
+      - interpret_beta1
+      - weight_diagnostics
+
+  - title: "Data"
+    desc: "Example datasets"
+    contents:
+      - example_assay
+
+navbar:
+  structure:
+    left:
+      - intro
+      - reference
+      - articles
+    right:
+      - search
+      - github
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/immunoplex/curveRweights
+
+articles:
+  - title: "Getting Started"
+    contents:
+      - introduction

@@ -34,8 +34,6 @@
 #' d <- prepare_cv(dat_sub, pcov_col = "pcov")
 #' head(d[, c("yi", "cv_i", "log_cv", "cv_source")])
 #'
-#' @importFrom dplyr mutate if_else n
-#' @importFrom rlang .data
 #' @export
 prepare_cv <- function(df,
                        concentration_col = "predicted_concentration",
@@ -46,32 +44,48 @@ prepare_cv <- function(df,
     pcov_col %in% names(df) &&
     any(is.finite(df[[pcov_col]]) & df[[pcov_col]] > 0, na.rm = TRUE)
 
-  out <- df |>
-    dplyr::mutate(
-      yi = dplyr::if_else(
-        is.finite(.data[[concentration_col]]) & .data[[concentration_col]] > 0,
-        log10(.data[[concentration_col]]),
-        NA_real_
-      ),
-      cv_i = dplyr::if_else(
-        if (use_pcov) is.finite(.data[[pcov_col]]) & .data[[pcov_col]] > 0
-        else          rep(FALSE, dplyr::n()),
-        .data[[pcov_col]],
-        dplyr::if_else(
-          is.finite(.data[[se_col]])            & .data[[se_col]] > 0 &
-          is.finite(.data[[concentration_col]]) & .data[[concentration_col]] > 0,
-          .data[[se_col]] / .data[[concentration_col]],
-          NA_real_
-        )
-      ),
-      log_cv = dplyr::if_else(is.finite(.data$cv_i) & .data$cv_i > 0,
-                               log(.data$cv_i), NA_real_),
-      cv_source = dplyr::if_else(
-        if (use_pcov) is.finite(.data[[pcov_col]]) & .data[[pcov_col]] > 0
-        else          rep(FALSE, dplyr::n()),
-        "pcov", "se_over_conc"
-      )
-    )
+  # Compute yi safely: clamp non-positive to NA before log10 to avoid NaN
+  conc <- df[[concentration_col]]
+  yi   <- rep(NA_real_, nrow(df))
+  ok_conc <- is.finite(conc) & conc > 0
+  yi[ok_conc] <- log10(conc[ok_conc])
 
-  out
+  # Compute cv_i: two code paths to avoid .data[[NULL]] when pcov_col is NULL
+  if (use_pcov) {
+    pcov_vec <- df[[pcov_col]]
+    se_vec   <- df[[se_col]]
+
+    pcov_ok  <- is.finite(pcov_vec) & pcov_vec > 0
+    se_ok    <- !pcov_ok & is.finite(se_vec) & se_vec > 0 & ok_conc
+
+    cv_i      <- rep(NA_real_, nrow(df))
+    cv_source <- rep(NA_character_, nrow(df))
+
+    cv_i[pcov_ok]      <- pcov_vec[pcov_ok]
+    cv_source[pcov_ok] <- "pcov"
+
+    cv_i[se_ok]      <- se_vec[se_ok] / conc[se_ok]
+    cv_source[se_ok] <- "se_over_conc"
+  } else {
+    se_vec <- df[[se_col]]
+    se_ok  <- is.finite(se_vec) & se_vec > 0 & ok_conc
+
+    cv_i      <- rep(NA_real_, nrow(df))
+    cv_source <- rep("se_over_conc", nrow(df))
+
+    cv_i[se_ok] <- se_vec[se_ok] / conc[se_ok]
+    cv_source[!se_ok] <- NA_character_
+  }
+
+  # Compute log_cv
+  log_cv <- rep(NA_real_, nrow(df))
+  cv_ok  <- is.finite(cv_i) & cv_i > 0
+  log_cv[cv_ok] <- log(cv_i[cv_ok])
+
+  df$yi        <- yi
+  df$cv_i      <- cv_i
+  df$log_cv    <- log_cv
+  df$cv_source <- cv_source
+
+  df
 }
