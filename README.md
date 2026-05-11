@@ -4,7 +4,7 @@ Bayesian Precision Weighting from Calibration Curve Uncertainty
 
 ## The Problem
 
-Immunoassay measurements are determined via a calibration curve (typically a four-parameter logistic, 4PL).  Each observation has a posterior coefficient of variation (pcov) that quantifies how precisely the curve determines that concentration.  Observations near the limits of quantification (LLOQ, ULOQ) have large pcov values because the curve is flat there; midrange observations have small pcov because the curve is steep.
+Immunoassay measurements are determined via a calibration curve (typically a nonlinear, sigmoidal function of concentration and assay response following a logistic, log-logistic or Gompertz form).  Each observation has a posterior coefficient of variation (pcov) that quantifies how precisely the curve determines that concentration.  Observations near the limits of quantification (LLOQ, ULOQ) have large pcov values because the curve is flat there; midrange observations have small pcov because the curve is steep.
 
 Traditional approaches handle this imprecision with a **binary gate**: observations between LLOQ and ULOQ are included with equal weight, and all others are excluded.  This discards information (excluded observations still carry signal) and treats all included observations as equally precise (they are not).
 

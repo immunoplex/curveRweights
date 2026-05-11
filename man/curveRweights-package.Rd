@@ -7,7 +7,8 @@
 \title{curveRweights: Bayesian Precision Weighting from Calibration Curve Uncertainty}
 \description{
 Immunoassay observations are measured via a calibration curve (typically a
-four-parameter logistic, 4PL).
+nonlinear, sigmoidal function of concentration and assay response following
+a logistic, log-logistic or Gompertz form).
 Each observation has a posterior coefficient of variation (pcov) that
 quantifies how precisely the curve determines that concentration.
 \code{curveRweights} estimates the power-law relationship between pcov and
@@ -102,13 +103,13 @@ Package. \emph{Journal of Statistical Software}, 36(3), 1--48.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/yourusername/curveRweights}
-  \item Report bugs at \url{https://github.com/yourusername/curveRweights/issues}
+  \item \url{https://github.com/immunoplex/curveRweights}
+  \item Report bugs at \url{https://github.com/immunoplex/curveRweights/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Michael Scot Zens \email{your.email@example.com}
+\strong{Maintainer}: Michael Scot Zens \email{michael.s.zens@dartmouth.edu}
 
 }
 \keyword{internal}

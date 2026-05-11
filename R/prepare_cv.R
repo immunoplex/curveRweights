@@ -6,7 +6,7 @@
 #' se_concentration / predicted_concentration otherwise.
 #'
 #' The pcov is preferred because it correctly captures the non-Gaussian
-#' posterior near the LLOQ and ULOQ where the 4PL curve is flat and the
+#' posterior near the LLOQ and ULOQ where the standard calibration curve is flat and the
 #' delta-method se/conc approximation breaks down.
 #'
 #' @param df Data frame with observation-level data.

@@ -2,7 +2,8 @@
 #'
 #' @description
 #' Immunoassay observations are measured via a calibration curve (typically a
-#' four-parameter logistic, 4PL).
+#' nonlinear, sigmoidal function of concentration and assay response following
+#' a logistic, log-logistic or Gompertz form).
 #' Each observation has a posterior coefficient of variation (pcov) that
 #' quantifies how precisely the curve determines that concentration.
 #' `curveRweights` estimates the power-law relationship between pcov and

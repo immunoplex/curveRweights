@@ -12,3 +12,4 @@ src/*.dll
 # OS files
 .DS_Store
 Thumbs.db
+.Rproj.user

@@ -3,7 +3,7 @@ Title: Bayesian Precision Weighting from Calibration Curve Uncertainty
 Version: 0.1.0
 Authors@R:
     person("Michael Scot", "Zens", role = c("aut", "cre"),
-           email = "your.email@example.com")
+           email = "michael.s.zens@dartmouth.edu")
 Description: Estimates observation-level precision weights from the posterior
     coefficient of variation (pcov) of calibration curve predictions using a
     joint location-scale Bayesian regression model.  The scale submodel
@@ -33,5 +33,5 @@ Suggests:
     usethis,
     testthat (>= 3.0.0)
 LazyData: true
-URL: https://github.com/yourusername/curveRweights
-BugReports: https://github.com/yourusername/curveRweights/issues
+URL: https://github.com/immunoplex/curveRweights
+BugReports: https://github.com/immunoplex/curveRweights/issues

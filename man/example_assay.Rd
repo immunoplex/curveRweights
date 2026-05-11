@@ -43,9 +43,10 @@ example_assay
 Anonymised observation-level data from a Luminex multiplex immunoassay
 measuring antibody responses across two vaccine groups, four timepoints,
 eleven antigens, and ten immunological features.  Each observation includes
-the predicted concentration from a 4PL calibration curve, its standard
+the predicted concentration from a semi-supervised, best fitting calibration curve, its standard
 error, and the posterior coefficient of variation (pcov) that quantifies
-calibration curve uncertainty.
+calibration curve uncertainty. All calculations were computed in I-SPI using the bayesian regression approach
+(https://immunoplex.org/i-spi-docs) .
 }
 \details{
 The data were anonymised by replacing patient IDs with random codes (S001
