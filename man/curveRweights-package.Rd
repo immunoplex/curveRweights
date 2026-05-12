@@ -6,6 +6,9 @@
 \alias{curveRweights-package}
 \title{curveRweights: Bayesian Precision Weighting from Calibration Curve Uncertainty}
 \description{
+#' \if{html}{\figure{logo.png}{options: width=120 alt='curveRweights logo'}}
+\if{latex}{\out{\includegraphics[width=3cm]{logo.png}}}
+
 Immunoassay observations are measured via a calibration curve (typically a
 nonlinear, sigmoidal function of concentration and assay response following
 a logistic, log-logistic or Gompertz form).

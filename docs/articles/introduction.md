@@ -1,5 +1,7 @@
 # Introduction to curveRweights
 
+![](../reference/figures/logo.png)
+
 ## The problem: unequal precision across the calibration curve
 
 Immunoassay measurements are determined via a calibration curve. Each

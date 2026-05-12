@@ -1,5 +1,7 @@
 # curveRweights: Bayesian Precision Weighting from Calibration Curve Uncertainty
 
+\#'
+
 Immunoassay observations are measured via a calibration curve (typically
 a nonlinear, sigmoidal function of concentration and assay response
 following a logistic, log-logistic or Gompertz form). Each observation

@@ -1,4 +1,4 @@
-# curveRweights
+# curveRweights <a href="https://immunoplex.github.io/curveRweights/"><img src="man/figures/logo.png" align="right" height="139" alt="curveRweights website" /></a>
 
 Bayesian Precision Weighting from Calibration Curve Uncertainty
 

@@ -16,6 +16,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r logo, echo=FALSE, out.width="120px", fig.align="right"}
+knitr::include_graphics("../man/figures/logo.png")
+```
+
 ## The problem: unequal precision across the calibration curve
 
 Immunoassay measurements are determined via a calibration curve.  Each

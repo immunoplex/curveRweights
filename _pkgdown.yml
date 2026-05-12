@@ -2,6 +2,7 @@ url: https://immunoplex.github.io/curveRweights/
 
 template:
   bootstrap: 5
+  bootswatch: flatly
 
 reference:
   - title: "Data Preparation"
@@ -34,6 +35,10 @@ reference:
       - example_assay
 
 navbar:
+  title: "curveRweights"
+  logo:
+    image: man/figures/logo.png   # <-- sticker appears in navbar
+    href: index.html
   structure:
     left:
       - intro
@@ -46,6 +51,18 @@ navbar:
     github:
       icon: fa-github
       href: https://github.com/immunoplex/curveRweights
+
+home:
+  title: "curveRweights"
+  description: "Curve-based inverse-variance weighted estimation"
+
+  # Logo on homepage
+  sidebar:
+    structure: [links, license, community, citation, authors, dev]
+
+authors:
+  sidebar:
+    roles: [aut, cre]
 
 articles:
   - title: "Getting Started"
