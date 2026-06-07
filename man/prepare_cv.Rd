@@ -8,48 +8,78 @@ prepare_cv(
   df,
   concentration_col = "predicted_concentration",
   se_col = "se_concentration",
-  pcov_col = "pcov"
+  pcov_col = "pcov",
+  predictor = c("auto", "se", "pcov", "se_over_conc"),
+  response_is_log10 = FALSE
 )
 }
 \arguments{
 \item{df}{Data frame with observation-level data.}
 
-\item{concentration_col}{Character: name of the predicted concentration
-column.}
+\item{concentration_col}{Character: predicted concentration column.}
 
-\item{se_col}{Character: name of the SE of concentration column.}
+\item{se_col}{Character: SE of concentration column.}
 
-\item{pcov_col}{Character: name of the posterior CV column.  Set to
-\code{NULL} to force computation from \code{se_col / concentration_col}.}
+\item{pcov_col}{Character: posterior CV column. \code{NULL} disables the
+\code{pcov} source.}
+
+\item{predictor}{One of \code{"auto"}, \code{"se"}, \code{"pcov"},
+\code{"se_over_conc"}. See the \emph{Scale predictor} section. Default
+\code{"auto"} reproduces the historical behaviour.}
+
+\item{response_is_log10}{Logical: is \code{concentration_col} already on the
+log10 scale? Default \code{FALSE}.}
 }
 \value{
-The input data frame with additional columns:
-\describe{
-\item{yi}{log10(predicted_concentration).  \code{NA} when concentration is
-non-finite or non-positive.}
-\item{cv_i}{Precision index: pcov when available and finite, else
-se/conc.  \code{NA} when neither source is usable.}
-\item{log_cv}{log(cv_i).  \code{NA} when cv_i is non-finite or non-positive.}
-\item{cv_source}{Character indicating which source was used for each
-row: \code{"pcov"} or \code{"se_over_conc"}.}
-}
+The input data frame with added columns \code{yi}, \code{cv_i},
+\code{log_cv}, \code{cv_source}.
 }
 \description{
-Computes the precision index (cv_i) and its log transform (log_cv) used as
-the predictor in the scale submodel.  Uses the stored posterior CV (pcov)
-from the calibration curve when available; falls back to
-se_concentration / predicted_concentration otherwise.
+Computes the location response (\code{yi}), the precision index
+(\code{cv_i}) used as the predictor in the scale submodel, and its log
+transform (\code{log_cv}).
 }
-\details{
-The pcov is preferred because it correctly captures the non-Gaussian
-posterior near the LLOQ and ULOQ where the standard calibration curve is flat and the
-delta-method se/conc approximation breaks down.
+\section{Scale predictor (\code{predictor})}{
+
+The scale submodel is \eqn{\log(\sigma_i) = \gamma_0 + \gamma_1 \log(cv_i)},
+i.e. \eqn{\sigma_i = \phi\, cv_i^{\beta_1}}. The quantity placed in
+\code{cv_i} therefore defines what \eqn{\phi = 1} means.
+\describe{
+\item{\code{"se"}}{Use \code{se_concentration} directly. In the curveR
+ecosystem this is the delta-method SD of the back-calculated
+concentration on the log10 scale, i.e. the residual SD of \code{yi}.
+This is the recommended predictor: it is uncapped, so it preserves the
+full precision gradient, and \eqn{\phi = 1} means "se_concentration is a
+calibrated residual SD".}
+\item{\code{"pcov"}}{Use the (capped) posterior CV. Legacy / foreign-data
+behaviour. Lossy because \code{pcov} is censored at \code{cv_x_max};
+equivalent to \code{"se"} only up to the constant \eqn{\ln(10)\cdot 100}
+(absorbed into \eqn{\phi}) and only where \code{pcov} is not capped.}
+\item{\code{"se_over_conc"}}{Use \code{se_col / concentration_col} (a
+natural-scale CV). Useful only when no calibration-curve SD/pcov is
+available.}
+\item{\code{"auto"}}{Backward-compatible default: prefer \code{pcov} when
+present and finite, else \code{se_over_conc} (the original behaviour of
+this function).}
 }
+}
+
+\section{Response scale (\code{response_is_log10})}{
+
+\code{yi} is the location response and must be on the log10-concentration
+scale. If \code{concentration_col} already holds log10 concentration (as in
+a curveR \code{calibration_result} with \code{is_log_independent = TRUE}),
+set \code{response_is_log10 = TRUE} so it is used as-is. If it holds a
+natural-scale concentration (the foreign-data convention), leave
+\code{FALSE} so \code{yi = log10(conc)}.
+}
+
 \examples{
 data(example_assay)
 dat_sub <- example_assay[example_assay$antigen == "prn" &
                          example_assay$feature == "IgG1", ]
-d <- prepare_cv(dat_sub, pcov_col = "pcov")
+d <- prepare_cv(dat_sub, pcov_col = "pcov")              # legacy: auto
+d2 <- prepare_cv(dat_sub, predictor = "se")              # se as predictor
 head(d[, c("yi", "cv_i", "log_cv", "cv_source")])
 
 }

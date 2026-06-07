@@ -1,70 +1,88 @@
 url: https://immunoplex.github.io/curveRweights/
 
 template:
-  bootstrap: 5
+  bootstrap: 5.0
   bootswatch: flatly
 
-reference:
-  - title: "Data Preparation"
-    desc: "Prepare and diagnose calibration curve precision data"
-    contents:
-      - prepare_cv
-      - diagnose_cv
-
-  - title: "Model Fitting"
-    desc: "Fit the Bayesian location-scale model"
-    contents:
-      - fit_saturated_weight
-      - fit_saturated_weight_batch
-
-  - title: "Weight Computation"
-    desc: "Compute and apply precision weights"
-    contents:
-      - compute_saturated_weights
-      - apply_saturated_weights
-
-  - title: "Diagnostics"
-    desc: "Interpret and diagnose weight estimates"
-    contents:
-      - interpret_beta1
-      - weight_diagnostics
-
-  - title: "Data"
-    desc: "Example datasets"
-    contents:
-      - example_assay
+home:
+  title: curveRweights
+  description: Bayesian precision weighting from calibration curve uncertainty for
+    the curveR suite. Joint location-scale models estimate the power-law relationship
+    between se_concentration and residual variance, yielding continuous per-observation
+    weights that replace binary LLOQ/ULOQ gating.
 
 navbar:
   title: "curveRweights"
   logo:
-    image: man/figures/logo.png   # <-- sticker appears in navbar
+    image: man/figures/logo_small.png
+    alt: curveRweights logo
+    width: 200px
     href: index.html
   structure:
     left:
-      - intro
-      - reference
-      - articles
+    - intro
+    - reference
+    - articles
     right:
-      - search
-      - github
+    - search
+    - github
   components:
     github:
       icon: fa-github
       href: https://github.com/immunoplex/curveRweights
+      aria-label: GitHub
 
-home:
-  title: "curveRweights"
-  description: "Curve-based inverse-variance weighted estimation"
+reference:
+- title: curveR Ecosystem Entry Points
+  desc: >
+    The recommended API for users coming from curveRfreq or curveRbayes.
+    `as_weight_data()` converts a `calibration_result(_multiplate)` into
+    the standardised input frame. `fit_precision_weights()` estimates
+    phi and beta1. `predict_weights()` applies fitted weights to new data.
+    `join_weights()` attaches weights back onto a sample data frame.
+  contents:
+  - as_weight_data
+  - fit_precision_weights
+  - predict_weights
+  - join_weights
 
-  # Logo on homepage
-  sidebar:
-    structure: [links, license, community, citation, authors, dev]
+- title: Precision Index Preparation
+  desc: >
+    Functions that compute and diagnose the precision index used as the
+    scale predictor. `prepare_cv()` builds yi, cv_i, and log_cv from
+    concentration and precision columns. `diagnose_cv()` checks whether
+    the precision index has enough variation to identify beta1.
+    `interpret_beta1()` classifies the estimated exponent into
+    human-readable regimes.
+  contents:
+  - prepare_cv
+  - diagnose_cv
+  - interpret_beta1
 
-authors:
-  sidebar:
-    roles: [aut, cre]
+- title: Weight Computation
+  desc: >
+    Deterministic weight computation from estimated scale parameters
+    and summary diagnostics for the resulting weight distribution.
+  contents:
+  - compute_saturated_weights
+  - weight_diagnostics
 
-articles:
-  - title: "Getting Started"
-    contents:
-      - introduction
+- title: Core Fitting Engine
+  desc: >
+    Lower-level functions that fit the joint Bayesian location-scale
+    model via brms. `fit_saturated_weight()` fits one group;
+    `fit_saturated_weight_batch()` loops over multiple groups.
+    `apply_saturated_weights()` applies a saved scale_table to new
+    data without refitting.
+  contents:
+  - fit_saturated_weight
+  - fit_saturated_weight_batch
+  - apply_saturated_weights
+
+- title: Example Dataset
+  desc: Anonymised Luminex multiplex immunoassay data for testing and documentation.
+  contents:
+  - example_assay
+
+news:
+  one_page: true

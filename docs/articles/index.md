@@ -1,6 +1,6 @@
 # Articles
 
-### Getting Started
+### All vignettes
 
-- [Introduction to
-  curveRweights](https://immunoplex.github.io/curveRweights/articles/introduction.md):
+- [Precision Weighting with
+  curveRweights](https://immunoplex.github.io/curveRweights/articles/precision-weighting.md):

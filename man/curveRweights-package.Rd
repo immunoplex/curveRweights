@@ -106,13 +106,14 @@ Package. \emph{Journal of Statistical Software}, 36(3), 1--48.
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://immunoplex.github.io/curveRweights/}
   \item \url{https://github.com/immunoplex/curveRweights}
   \item Report bugs at \url{https://github.com/immunoplex/curveRweights/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Michael Scot Zens \email{michael.s.zens@dartmouth.edu}
+\strong{Maintainer}: Immunoplex \email{maintainer@immunoplex.org}
 
 }
 \keyword{internal}

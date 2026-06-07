@@ -22,7 +22,7 @@ precision weights** via a Bayesian location-scale model.
 ``` r
 library(curveRweights)
 library(dplyr)
-#> Warning: package 'dplyr' was built under R version 4.5.2
+#> Warning: package 'dplyr' was built under R version 4.5.3
 #> 
 #> Attaching package: 'dplyr'
 #> The following objects are masked from 'package:stats':

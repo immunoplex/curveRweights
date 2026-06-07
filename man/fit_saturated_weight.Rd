@@ -11,6 +11,8 @@ fit_saturated_weight(
   se_col = "se_concentration",
   pcov_col = "pcov",
   plate_col = "plate",
+  predictor = c("auto", "se", "pcov", "se_over_conc"),
+  response_is_log10 = FALSE,
   prior_gamma0 = brms::set_prior("normal(0, 1)", class = "Intercept", dpar = "sigma"),
   prior_gamma1 = brms::set_prior("normal(1, 0.5)", class = "b", dpar = "sigma"),
   prior_location = brms::set_prior("normal(0, 2)", class = "b"),
@@ -27,102 +29,55 @@ fit_saturated_weight(
 \item{df}{Data frame with observation-level data.}
 
 \item{cell_col}{Character: name of the saturated cell-means factor column.
-Create this externally, e.g.:
-\code{df$cell <- interaction(df$Arm, df$Timeperiod, drop = TRUE)}.}
+Create this externally, e.g.
+\code{df$cell <- interaction(df$Arm, df$Timeperiod, drop = TRUE)}, or let
+\code{\link[=as_weight_data]{as_weight_data()}} build it for you.}
 
 \item{concentration_col}{Character: predicted concentration column name.}
 
 \item{se_col}{Character: SE of concentration column name.}
 
-\item{pcov_col}{Character: posterior CV column name.
-\code{NULL} = compute from se/conc.}
+\item{pcov_col}{Character: posterior CV column name. \code{NULL} disables it.}
 
 \item{plate_col}{Character: plate column name for random intercept.
 \code{NULL} = no plate random effect.}
 
-\item{prior_gamma0}{A \code{brms::prior} object for gamma_0 (log phi).}
+\item{predictor}{Scale predictor, passed to \code{\link[=prepare_cv]{prepare_cv()}}. One of
+\code{"auto"} (default; legacy behaviour), \code{"se"} (recommended for
+curveR ecosystem input), \code{"pcov"}, \code{"se_over_conc"}.}
 
-\item{prior_gamma1}{A \code{brms::prior} object for gamma_1 (beta1).}
+\item{response_is_log10}{Logical, passed to \code{\link[=prepare_cv]{prepare_cv()}}: is
+\code{concentration_col} already on the log10 scale (as in a curveR
+\code{calibration_result})? Default \code{FALSE}.}
 
-\item{prior_location}{A \code{brms::prior} object for location (cell mean)
-coefficients.}
+\item{prior_gamma0, prior_gamma1, prior_location, prior_plate_sd}{\code{brms::prior} objects.}
 
-\item{prior_plate_sd}{A \code{brms::prior} object for plate RE standard
-deviation.}
-
-\item{iter}{Integer: MCMC iterations per chain.}
-
-\item{warmup}{Integer: warmup iterations per chain.}
-
-\item{chains}{Integer: number of MCMC chains.}
-
-\item{cores}{Integer: parallel cores for chain computation.}
-
-\item{adapt_delta}{Numeric: target HMC acceptance probability (0-1).}
-
-\item{seed}{Integer: random seed for reproducibility.}
+\item{iter, warmup, chains, cores, adapt_delta, seed}{MCMC controls.}
 }
 \value{
-Named list with elements: \code{fit} (brmsfit object), \code{phi}
-(baseline scaling factor), \code{beta1} (precision exponent),
-\code{gamma_0} and \code{gamma_1} (log-scale estimates),
-\code{gamma_0_CI} and \code{gamma_1_CI} (95 percent credible intervals),
-\code{phi_CI} (back-transformed CI for phi),
-\code{interpretation} (precision regime label),
-\code{effective_se_power} (2 * beta1),
-\code{data} (input data with weights added: \code{yi}, \code{cv_i},
-\code{log_cv}, \code{sigma_i}, \code{w_saturated}, \code{w_saturated_norm}),
-\code{diagnostics} (convergence and weight diagnostics),
-\code{cv_diagnostics} (output of \code{diagnose_cv}),
-\code{formula} (location and scale formula strings),
-\code{priors_used} (priors passed to brms).
+Named list (see original documentation): \code{fit}, \code{phi},
+\code{beta1}, \code{gamma_0}, \code{gamma_1}, credible intervals,
+\code{interpretation}, \code{effective_se_power}, \code{data},
+\code{diagnostics}, \code{cv_diagnostics}, \code{formula},
+\code{priors_used}.
 }
 \description{
 Fits a brms Gaussian location-scale model where the location uses saturated
 cell means (one coefficient per level of \code{cell_col}) to absorb ALL
 systematic variation in the response, and the scale estimates the power-law
-relationship between the calibration curve's posterior CV (pcov) and residual
+relationship between a per-observation precision index and residual
 variance, shared across all cells.
 }
 \details{
 The location model uses \code{yi ~ 0 + cell [+ (1|plate)]} (saturated cell
-means).  The scale model uses \code{log(sigma) = gamma_0 + gamma_1 * log(cv)}.
+means). The scale model uses \code{log(sigma) = gamma_0 + gamma_1 * log(cv)}.
 
 Default prior on gamma_0 is Normal(0, 1), centering phi = exp(gamma_0) at 1.
 Default prior on gamma_1 is Normal(1, 0.5), centering beta1 at the
 delta-method prediction of 1, with a 95 percent interval from 0 to 2.
 }
-\examples{
-\donttest{
-data(example_assay)
-
-# Select one antigen/feature group and create the cell factor
-dat_prn <- example_assay[example_assay$antigen == "prn" &
-                         example_assay$feature == "IgG1", ]
-dat_prn$cell <- interaction(dat_prn$group_a, dat_prn$group_b, drop = TRUE)
-
-# Fit (reduced iterations for speed; use 4000/1000 for real analysis)
-sw <- fit_saturated_weight(
-  df        = dat_prn,
-  cell_col  = "cell",
-  pcov_col  = "pcov",
-  plate_col = "plate",
-  iter = 1000, warmup = 500, chains = 2, cores = 2
-)
-
-cat("phi =", sw$phi, " beta1 =", sw$beta1, "\n")
-cat(sw$interpretation, "\n")
-
-# Weights are on sw$data
-summary(sw$data$w_saturated_norm)
-weight_diagnostics(sw$data$w_saturated)
-}
-
-}
 \seealso{
-\code{\link{fit_saturated_weight_batch}},
-\code{\link{apply_saturated_weights}},
-\code{\link{prepare_cv}},
-\code{\link{diagnose_cv}},
-\code{\link{weight_diagnostics}}
+\code{\link[=fit_precision_weights]{fit_precision_weights()}} for the curveR-ecosystem entry point that
+wraps this estimator, \code{\link[=as_weight_data]{as_weight_data()}}, \code{\link[=prepare_cv]{prepare_cv()}}, \code{\link[=diagnose_cv]{diagnose_cv()}},
+\code{\link[=weight_diagnostics]{weight_diagnostics()}}.
 }

@@ -102,10 +102,12 @@ Package. *Journal of Statistical Software*, 36(3), 1–48.
 
 Useful links:
 
+- <https://immunoplex.github.io/curveRweights/>
+
 - <https://github.com/immunoplex/curveRweights>
 
 - Report bugs at <https://github.com/immunoplex/curveRweights/issues>
 
 ## Author
 
-**Maintainer**: Michael Scot Zens <michael.s.zens@dartmouth.edu>
+**Maintainer**: Immunoplex <maintainer@immunoplex.org>

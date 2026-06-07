@@ -1,42 +1,42 @@
 Package: curveRweights
 Title: Bayesian Precision Weighting from Calibration Curve Uncertainty
-Version: 0.1.0
+Version: 0.2.0
 Authors@R:
-    person("Michael Scot", "Zens", role = c("aut", "cre"),
-           email = "michael.s.zens@dartmouth.edu")
-Description: Estimates observation-level precision weights from the posterior
-    coefficient of variation (pcov) of calibration curve predictions using a
-    joint location-scale Bayesian regression model.  The scale submodel
-    estimates the power-law relationship sigma_i = phi * pcov_i^beta1, where
-    phi captures baseline variance inflation beyond calibration curve
-    uncertainty and beta1 captures how steeply pcov drives weight
-    differentiation.  A saturated cell-means location model absorbs all
-    systematic experimental effects so that the scale parameters are identified
-    purely from within-cell residual structure.  Weights w_i = 1/sigma_i^2 are
-    then available for downstream weighted least-squares, meta-regression, or
-    survey-weighted rank tests comparing experimental conditions.
-License: AGPL (>= 3) + file LICENSE
+    person("Immunoplex", role = c("aut", "cre"),
+           email = "maintainer@immunoplex.org")
+Description: Part of the curveR ecosystem. Consumes the calibration_result and
+    calibration_result_multiplate S3 objects produced by curveRfreq and
+    curveRbayes and estimates the power-law relationship between
+    calibration-curve precision (the uncapped se_concentration) and residual
+    variance via a joint Bayesian location-scale model, yielding per-observation
+    precision weights that retain information from observations a binary
+    quantification gate would discard.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
     R (>= 4.1.0)
 Imports:
-    brms (>= 2.19.0),
-    dplyr (>= 1.1.0),
+    curveRcore (>= 0.2.0),
+    brms,
+    dplyr,
     rlang,
-    tibble,
-    stats
+    stats,
+    tibble
 Suggests:
+    curveRfreq,
+    curveRbayes,
+    cmdstanr,
+    rstan,
     metafor,
-    survey,
-    usethis,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
-VignetteBuilder: knitr
+SystemRequirements: A Stan backend for brms (rstan or cmdstanr); see
+    https://immunoplex.github.io/curveR/articles/installation.html
 Config/testthat/edition: 3
-Config/Needs/website: pkgdown
-LazyData: true
-URL: https://github.com/immunoplex/curveRweights
+License: AGPL (>= 3) + file LICENSE
+VignetteBuilder: knitr
+URL: https://immunoplex.github.io/curveRweights/, https://github.com/immunoplex/curveRweights
 BugReports: https://github.com/immunoplex/curveRweights/issues
+LazyData: true

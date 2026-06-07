@@ -1,9 +1,8 @@
 # Prepare the Precision Index from Calibration Curve Output
 
-Computes the precision index (cv_i) and its log transform (log_cv) used
-as the predictor in the scale submodel. Uses the stored posterior CV
-(pcov) from the calibration curve when available; falls back to
-se_concentration / predicted_concentration otherwise.
+Computes the location response (`yi`), the precision index (`cv_i`) used
+as the predictor in the scale submodel, and its log transform
+(`log_cv`).
 
 ## Usage
 
@@ -12,7 +11,9 @@ prepare_cv(
   df,
   concentration_col = "predicted_concentration",
   se_col = "se_concentration",
-  pcov_col = "pcov"
+  pcov_col = "pcov",
+  predictor = c("auto", "se", "pcov", "se_over_conc"),
+  response_is_log10 = FALSE
 )
 ```
 
@@ -24,45 +25,72 @@ prepare_cv(
 
 - concentration_col:
 
-  Character: name of the predicted concentration column.
+  Character: predicted concentration column.
 
 - se_col:
 
-  Character: name of the SE of concentration column.
+  Character: SE of concentration column.
 
 - pcov_col:
 
-  Character: name of the posterior CV column. Set to `NULL` to force
-  computation from `se_col / concentration_col`.
+  Character: posterior CV column. `NULL` disables the `pcov` source.
+
+- predictor:
+
+  One of `"auto"`, `"se"`, `"pcov"`, `"se_over_conc"`. See the *Scale
+  predictor* section. Default `"auto"` reproduces the historical
+  behaviour.
+
+- response_is_log10:
+
+  Logical: is `concentration_col` already on the log10 scale? Default
+  `FALSE`.
 
 ## Value
 
-The input data frame with additional columns:
+The input data frame with added columns `yi`, `cv_i`, `log_cv`,
+`cv_source`.
 
-- yi:
+## Scale predictor (`predictor`)
 
-  log10(predicted_concentration). `NA` when concentration is non-finite
-  or non-positive.
+The scale submodel is \\\log(\sigma_i) = \gamma_0 + \gamma_1
+\log(cv_i)\\, i.e. \\\sigma_i = \phi\\ cv_i^{\beta_1}\\. The quantity
+placed in `cv_i` therefore defines what \\\phi = 1\\ means.
 
-- cv_i:
+- `"se"`:
 
-  Precision index: pcov when available and finite, else se/conc. `NA`
-  when neither source is usable.
+  Use `se_concentration` directly. In the curveR ecosystem this is the
+  delta-method SD of the back-calculated concentration on the log10
+  scale, i.e. the residual SD of `yi`. This is the recommended
+  predictor: it is uncapped, so it preserves the full precision
+  gradient, and \\\phi = 1\\ means "se_concentration is a calibrated
+  residual SD".
 
-- log_cv:
+- `"pcov"`:
 
-  log(cv_i). `NA` when cv_i is non-finite or non-positive.
+  Use the (capped) posterior CV. Legacy / foreign-data behaviour. Lossy
+  because `pcov` is censored at `cv_x_max`; equivalent to `"se"` only up
+  to the constant \\\ln(10)\cdot 100\\ (absorbed into \\\phi\\) and only
+  where `pcov` is not capped.
 
-- cv_source:
+- `"se_over_conc"`:
 
-  Character indicating which source was used for each row: `"pcov"` or
-  `"se_over_conc"`.
+  Use `se_col / concentration_col` (a natural-scale CV). Useful only
+  when no calibration-curve SD/pcov is available.
 
-## Details
+- `"auto"`:
 
-The pcov is preferred because it correctly captures the non-Gaussian
-posterior near the LLOQ and ULOQ where the standard calibration curve is
-flat and the delta-method se/conc approximation breaks down.
+  Backward-compatible default: prefer `pcov` when present and finite,
+  else `se_over_conc` (the original behaviour of this function).
+
+## Response scale (`response_is_log10`)
+
+`yi` is the location response and must be on the log10-concentration
+scale. If `concentration_col` already holds log10 concentration (as in a
+curveR `calibration_result` with `is_log_independent = TRUE`), set
+`response_is_log10 = TRUE` so it is used as-is. If it holds a
+natural-scale concentration (the foreign-data convention), leave `FALSE`
+so `yi = log10(conc)`.
 
 ## Examples
 
@@ -70,7 +98,9 @@ flat and the delta-method se/conc approximation breaks down.
 data(example_assay)
 dat_sub <- example_assay[example_assay$antigen == "prn" &
                          example_assay$feature == "IgG1", ]
-d <- prepare_cv(dat_sub, pcov_col = "pcov")
+d <- prepare_cv(dat_sub, pcov_col = "pcov")              # legacy: auto
+d2 <- prepare_cv(dat_sub, predictor = "se")              # se as predictor
+#> Error in prepare_cv(dat_sub, predictor = "se"): unused argument (predictor = "se")
 head(d[, c("yi", "cv_i", "log_cv", "cv_source")])
 #>             yi      cv_i     log_cv cv_source
 #> 11   0.9707595 0.1126505 -2.1834647      pcov
