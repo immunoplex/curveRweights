@@ -124,7 +124,7 @@
 <span><span class="co">#&gt;   regime: moderate precision weighting</span></span>
 <span></span>
 <span><span class="co"># Step 3: Join weights back onto samples</span></span>
-<span><span class="va">samples_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/join_weights.html">join_weights</a></span><span class="op">(</span><span class="fu">curveRcore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/curveRcore/man/tidy_samples.html" class="external-link">tidy_samples</a></span><span class="op">(</span><span class="va">mp</span><span class="op">)</span>, <span class="va">pw</span><span class="op">)</span></span>
+<span><span class="va">samples_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/join_weights.html">join_weights</a></span><span class="op">(</span><span class="fu">curveRcore</span><span class="fu">::</span><span class="fu"><a href="https://immunoplex.github.io/curveRcore/reference/tidy_samples.html" class="external-link">tidy_samples</a></span><span class="op">(</span><span class="va">mp</span><span class="op">)</span>, <span class="va">pw</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Step 4: Draw a continuous weight profile across the grid</span></span>
 <span><span class="va">profile</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/predict_weights.html">predict_weights</a></span><span class="op">(</span><span class="va">pw</span>, newdata <span class="op">=</span> <span class="va">mp</span><span class="op">)</span></span></code></pre></div>

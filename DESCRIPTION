@@ -14,8 +14,11 @@ Description: Part of the curveR ecosystem. Consumes the calibration_result and
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Depends:
-    R (>= 4.1.0)
+Remotes:
+    immunoplex/curveRfreq,
+    immunoplex/curveRbayes,
+    immunoplex/curveRweights,
+    stan-dev/cmdstanr
 Imports:
     curveRcore (>= 0.2.0),
     brms,
@@ -32,6 +35,7 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
+Additional_repositories: https://stan-dev.r-universe.dev
 SystemRequirements: A Stan backend for brms (rstan or cmdstanr); see
     https://immunoplex.github.io/curveR/articles/installation.html
 Config/testthat/edition: 3
@@ -40,3 +44,5 @@ VignetteBuilder: knitr
 URL: https://immunoplex.github.io/curveRweights/, https://github.com/immunoplex/curveRweights
 BugReports: https://github.com/immunoplex/curveRweights/issues
 LazyData: true
+Depends:
+    R (>= 4.1.0)

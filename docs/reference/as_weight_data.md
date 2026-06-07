@@ -124,9 +124,9 @@ and `.cell`. Carries attributes `conc_scale`, `is_log_independent`,
 ## Details
 
 Extraction from the S3 object is delegated to
-[`curveRcore::tidy_samples()`](https://rdrr.io/pkg/curveRcore/man/tidy_samples.html)
+[`curveRcore::tidy_samples()`](https://immunoplex.github.io/curveRcore/reference/tidy_samples.html)
 /
-[`curveRcore::tidy_grid()`](https://rdrr.io/pkg/curveRcore/man/tidy_grid.html)
+[`curveRcore::tidy_grid()`](https://immunoplex.github.io/curveRcore/reference/tidy_grid.html)
 so that the data contract has a single owner; this adapter never reaches
 into object internals.
 
@@ -134,4 +134,4 @@ into object internals.
 
 [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md),
 [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md),
-[`curveRcore::tidy_samples()`](https://rdrr.io/pkg/curveRcore/man/tidy_samples.html)
+[`curveRcore::tidy_samples()`](https://immunoplex.github.io/curveRcore/reference/tidy_samples.html)

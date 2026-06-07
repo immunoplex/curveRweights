@@ -257,7 +257,7 @@ within-cell replication.</p>
 profile across the precision grid:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Join weights onto samples by sampleid</span></span>
-<span><span class="va">samples_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/join_weights.html">join_weights</a></span><span class="op">(</span><span class="fu">curveRcore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/curveRcore/man/tidy_samples.html" class="external-link">tidy_samples</a></span><span class="op">(</span><span class="va">mp</span><span class="op">)</span>, <span class="va">pw</span><span class="op">)</span></span>
+<span><span class="va">samples_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/join_weights.html">join_weights</a></span><span class="op">(</span><span class="fu">curveRcore</span><span class="fu">::</span><span class="fu"><a href="https://immunoplex.github.io/curveRcore/reference/tidy_samples.html" class="external-link">tidy_samples</a></span><span class="op">(</span><span class="va">mp</span><span class="op">)</span>, <span class="va">pw</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Continuous weight profile across the precision grid</span></span>
 <span><span class="va">profile</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/predict_weights.html">predict_weights</a></span><span class="op">(</span><span class="va">pw</span>, newdata <span class="op">=</span> <span class="va">mp</span><span class="op">)</span></span>
