@@ -11,7 +11,7 @@ transform (log_cv)."><meta property="og:image" content="https://immunoplex.githu
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -145,7 +145,6 @@ natural-scale concentration (the foreign-data convention), leave
 <span class="r-in"><span>                         <span class="va">example_assay</span><span class="op">$</span><span class="va">feature</span> <span class="op">==</span> <span class="st">"IgG1"</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">prepare_cv</span><span class="op">(</span><span class="va">dat_sub</span>, pcov_col <span class="op">=</span> <span class="st">"pcov"</span><span class="op">)</span>              <span class="co"># legacy: auto</span></span></span>
 <span class="r-in"><span><span class="va">d2</span> <span class="op">&lt;-</span> <span class="fu">prepare_cv</span><span class="op">(</span><span class="va">dat_sub</span>, predictor <span class="op">=</span> <span class="st">"se"</span><span class="op">)</span>              <span class="co"># se as predictor</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in prepare_cv(dat_sub, predictor = "se"):</span> unused argument (predictor = "se")</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">d</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yi"</span>, <span class="st">"cv_i"</span>, <span class="st">"log_cv"</span>, <span class="st">"cv_source"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             yi      cv_i     log_cv cv_source</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 11   0.9707595 0.1126505 -2.1834647      pcov</span>

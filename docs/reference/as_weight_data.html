@@ -19,7 +19,7 @@ original foreign-data workflow."><meta property="og:image" content="https://immu
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,8 +50,8 @@ original foreign-data workflow."><meta property="og:image" content="https://immu
     <div class="ref-description section level2">
     <p>Converts a curveRcore <code>calibration_result</code> or
 <code>calibration_result_multiplate</code> (the object returned by
-<code><a href="https://rdrr.io/pkg/curveRfreq/man/fit_calibration_freq_multiplate.html" class="external-link">curveRfreq::fit_calibration_freq_multiplate()</a></code> or
-<code><a href="https://rdrr.io/pkg/curveRbayes/man/fit_calibration_bayes.html" class="external-link">curveRbayes::fit_calibration_bayes()</a></code>) into the tidy, standardized
+<code><a href="https://immunoplex.github.io/curveRfreq/reference/fit_calibration_freq_multiplate.html" class="external-link">curveRfreq::fit_calibration_freq_multiplate()</a></code> or
+<code><a href="https://immunoplex.github.io/curveRbayes/reference/fit_calibration_bayes.html" class="external-link">curveRbayes::fit_calibration_bayes()</a></code>) into the tidy, standardized
 data frame consumed by <code><a href="fit_precision_weights.html">fit_precision_weights()</a></code>. A plain data frame is also
 accepted (validation/passthrough), which is the escape hatch for the
 original foreign-data workflow.</p>
@@ -118,17 +118,28 @@ or <code>data.frame</code>.</p></dd>
 
 <dt id="arg-design">design<a class="anchor" aria-label="anchor" href="#arg-design"></a></dt>
 <dd><p>Character vector of design-group column names that define the
-saturated cells (e.g. <code>c("timeperiod", "cohort_arm")</code>). These must be
-present on the input. For a <code>calibration_result(_multiplate)</code> they are
-carried through from the original <code>samples</code> data frame passed at fit
-time — if they are absent, supply them on the fitting input first, or use
-the <code>data.frame</code> method with a pre-joined frame.</p></dd>
+saturated cells (e.g. <code>c("timeperiod", "cohort_arm")</code>). Required, and
+must be present on the input, when <code>source = "samples"</code>: for a
+<code>calibration_result(_multiplate)</code> these are carried through from the
+original <code>samples</code> data frame passed at fit time — if they are
+absent, supply them on the fitting input first, or use the
+<code>data.frame</code> method with a pre-joined frame. Ignored (silently
+intersected with the available columns) when <code>source = "grid"</code>: see
+<code>source</code> below.</p></dd>
 
 
 <dt id="arg-source">source<a class="anchor" aria-label="anchor" href="#arg-source"></a></dt>
-<dd><p><code>"samples"</code> (default) extracts per-sample predictions;
+<dd><p><code>"samples"</code> (default) extracts per-sample predictions,
+validates that every <code>design</code> column is present, and builds the
+<code>.cell</code> saturated-cell factor used by <code><a href="fit_precision_weights.html">fit_precision_weights()</a></code>.
 <code>"grid"</code> extracts the precision grid (used by <code><a href="predict_weights.html">predict_weights()</a></code> to
-build a continuous weight profile).</p></dd>
+build a continuous weight profile): <code><a href="https://immunoplex.github.io/curveRcore/reference/tidy_grid.html" class="external-link">curveRcore::tidy_grid()</a></code> returns
+a per-curve concentration profile, not a per-design-cell table, so it
+never carries the original <code>samples</code> design columns. <code>design</code>
+and the <code>.cell</code>/within-cell-replication checks therefore do not apply
+to <code>source = "grid"</code> — the profile only needs
+<code>se</code>/<code>concentration</code>/<code>pcov</code>, which <code><a href="predict_weights.html">predict_weights()</a></code>
+consumes directly.</p></dd>
 
 
 <dt id="arg-conc-scale">conc_scale<a class="anchor" aria-label="anchor" href="#arg-conc-scale"></a></dt>
@@ -165,9 +176,11 @@ is the point of the package.</p></dd>
 <code>concentration</code> (location response on <code>conc_scale</code>),
 <code>predicted_concentration</code> (log10, for the estimator), <code>se</code>
 (= <code>se_concentration</code>, the canonical uncapped scale predictor),
-<code>pcov</code> (reference only), <code>pcov_pass</code>, the <code>design</code> columns,
-and <code>.cell</code>. Carries attributes <code>conc_scale</code>,
-<code>is_log_independent</code>, <code>design</code>, <code>plate_in_cell</code>.</p>
+<code>pcov</code> (reference only), <code>pcov_pass</code>, and, when <code>source =
+  "samples"</code> (or any <code>design</code> columns are present on a <code>"grid"</code>
+input), the <code>design</code> columns and <code>.cell</code>. Carries attributes
+<code>conc_scale</code>, <code>is_log_independent</code>, <code>design</code> (resolved to
+the columns actually present), <code>plate_in_cell</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

@@ -107,8 +107,6 @@ batch <- fit_saturated_weight_batch(
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#bulk-ess
-#>   sigma fixef rows: sigma_Intercept, cellvaccine_a.timepoint_1, cellvaccine_b.timepoint_1, cellvaccine_a.timepoint_2, cellvaccine_b.timepoint_2, cellvaccine_a.timepoint_3, cellvaccine_b.timepoint_3, cellvaccine_a.timepoint_4, cellvaccine_b.timepoint_4, sigma_log_cv
-#>   sigma fixef cols: Estimate, Est.Error, Q2.5, Q97.5
 #>   phi = 2.885  [2.03, 4.07]
 #>   beta1 = 1.024  [0.829, 1.2]
 #>   interpretation: moderate precision weighting
@@ -121,8 +119,6 @@ batch <- fit_saturated_weight_batch(
 #>   location: yi ~ 0 + cell + (1 | plate)
 #>   scale:    sigma ~ log_cv
 #>   fitting brms model (1000 iter, 2 chains)...
-#>   sigma fixef rows: sigma_Intercept, cellvaccine_a.timepoint_1, cellvaccine_b.timepoint_1, cellvaccine_a.timepoint_2, cellvaccine_b.timepoint_2, cellvaccine_a.timepoint_3, cellvaccine_b.timepoint_3, cellvaccine_a.timepoint_4, cellvaccine_b.timepoint_4, sigma_log_cv
-#>   sigma fixef cols: Estimate, Est.Error, Q2.5, Q97.5
 #>   phi = 2.234  [1.5, 3.55]
 #>   beta1 = 0.7743  [0.634, 0.935]
 #>   interpretation: compressed precision weighting
@@ -141,8 +137,6 @@ batch <- fit_saturated_weight_batch(
 #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#tail-ess
-#>   sigma fixef rows: sigma_Intercept, cellvaccine_a.timepoint_1, cellvaccine_b.timepoint_1, cellvaccine_a.timepoint_2, cellvaccine_b.timepoint_2, cellvaccine_a.timepoint_3, cellvaccine_b.timepoint_3, cellvaccine_a.timepoint_4, cellvaccine_b.timepoint_4, sigma_log_cv
-#>   sigma fixef cols: Estimate, Est.Error, Q2.5, Q97.5
 #>   phi = 3.228  [2.26, 4.61]
 #>   beta1 = 1.034  [0.904, 1.16]
 #>   interpretation: calibrated (pcov ~ residual SD)

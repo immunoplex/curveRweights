@@ -61,3 +61,38 @@
 - `example_assay` dataset: 48,224 observations from a Luminex multiplex
   immunoassay (11 antigens, 10 features, 150 subjects, 4 timepoints, 15
   plates).
+
+## curveRweights 0.2.1
+
+### Verified compatible with curveRcore 0.3.0 (mask-aware preprocessing)
+
+- No code changes required. Weighting operates purely on the standard
+  points passed to the fit, which are the *included* subset
+  (worker-filtered). Verified no references to preprocessing, blanks, or
+  the database anywhere in `R/`; weights cannot be influenced by masked
+  points.
+
+### Bug fix: `predict_weights()` on a `calibration_result(_multiplate)` always failed
+
+- `as_weight_data(source = "grid")` required every `design` column (e.g.
+  `timeperiod`, `cohort_arm`) to be present in the extracted table, but
+  [`curveRcore::tidy_grid()`](https://immunoplex.github.io/curveRcore/reference/tidy_grid.html)
+  returns a per-curve concentration *profile* (keyed by
+  `curve_id`/concentration), not a per-design-cell table — it never
+  carries the original `samples` design columns. Since
+  [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md)
+  always calls
+  `as_weight_data(newdata, design = object$design, source = "grid")`
+  internally, calling it with a `calibration_result(_multiplate)` (its
+  documented, intended usage) errored unconditionally with
+  `"design column(s) not found"`.
+- [`as_weight_data()`](https://immunoplex.github.io/curveRweights/reference/as_weight_data.md)
+  now only requires/validates `design` and builds the `.cell`
+  saturated-cell factor (with its within-cell-replication checks) for
+  `source = "samples"` — the fitting table consumed by
+  [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md).
+  For `source = "grid"`, `design` is intersected with whatever columns
+  are actually present (currently none, from `tidy_grid()`) and the
+  cell/replication checks are skipped, since
+  [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md)
+  only ever reads `se`/`concentration`/`pcov` from the profile.

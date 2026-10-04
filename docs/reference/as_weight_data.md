@@ -2,9 +2,9 @@
 
 Converts a curveRcore `calibration_result` or
 `calibration_result_multiplate` (the object returned by
-[`curveRfreq::fit_calibration_freq_multiplate()`](https://rdrr.io/pkg/curveRfreq/man/fit_calibration_freq_multiplate.html)
+[`curveRfreq::fit_calibration_freq_multiplate()`](https://immunoplex.github.io/curveRfreq/reference/fit_calibration_freq_multiplate.html)
 or
-[`curveRbayes::fit_calibration_bayes()`](https://rdrr.io/pkg/curveRbayes/man/fit_calibration_bayes.html))
+[`curveRbayes::fit_calibration_bayes()`](https://immunoplex.github.io/curveRbayes/reference/fit_calibration_bayes.html))
 into the tidy, standardized data frame consumed by
 [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md).
 A plain data frame is also accepted (validation/passthrough), which is
@@ -71,18 +71,31 @@ as_weight_data(
 - design:
 
   Character vector of design-group column names that define the
-  saturated cells (e.g. `c("timeperiod", "cohort_arm")`). These must be
-  present on the input. For a `calibration_result(_multiplate)` they are
-  carried through from the original `samples` data frame passed at fit
-  time — if they are absent, supply them on the fitting input first, or
-  use the `data.frame` method with a pre-joined frame.
+  saturated cells (e.g. `c("timeperiod", "cohort_arm")`). Required, and
+  must be present on the input, when `source = "samples"`: for a
+  `calibration_result(_multiplate)` these are carried through from the
+  original `samples` data frame passed at fit time — if they are absent,
+  supply them on the fitting input first, or use the `data.frame` method
+  with a pre-joined frame. Ignored (silently intersected with the
+  available columns) when `source = "grid"`: see `source` below.
 
 - source:
 
-  `"samples"` (default) extracts per-sample predictions; `"grid"`
-  extracts the precision grid (used by
+  `"samples"` (default) extracts per-sample predictions, validates that
+  every `design` column is present, and builds the `.cell`
+  saturated-cell factor used by
+  [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md).
+  `"grid"` extracts the precision grid (used by
   [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md)
-  to build a continuous weight profile).
+  to build a continuous weight profile):
+  [`curveRcore::tidy_grid()`](https://immunoplex.github.io/curveRcore/reference/tidy_grid.html)
+  returns a per-curve concentration profile, not a per-design-cell
+  table, so it never carries the original `samples` design columns.
+  `design` and the `.cell`/within-cell-replication checks therefore do
+  not apply to `source = "grid"` — the profile only needs
+  `se`/`concentration`/`pcov`, which
+  [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md)
+  consumes directly.
 
 - conc_scale:
 
@@ -117,9 +130,11 @@ A data frame (class `weight_data`) with at least: `obs_id`, `sampleid`
 (if present), `curve_id` (if `include_plate`), `concentration` (location
 response on `conc_scale`), `predicted_concentration` (log10, for the
 estimator), `se` (= `se_concentration`, the canonical uncapped scale
-predictor), `pcov` (reference only), `pcov_pass`, the `design` columns,
-and `.cell`. Carries attributes `conc_scale`, `is_log_independent`,
-`design`, `plate_in_cell`.
+predictor), `pcov` (reference only), `pcov_pass`, and, when
+`source = "samples"` (or any `design` columns are present on a `"grid"`
+input), the `design` columns and `.cell`. Carries attributes
+`conc_scale`, `is_log_independent`, `design` (resolved to the columns
+actually present), `plate_in_cell`.
 
 ## Details
 

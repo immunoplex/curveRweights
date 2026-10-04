@@ -90,8 +90,6 @@ sw <- fit_saturated_weight(dat_prn, cell_col = "cell", pcov_col = "pcov",
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#bulk-ess
-#>   sigma fixef rows: sigma_Intercept, cellvaccine_a.timepoint_1, cellvaccine_b.timepoint_1, cellvaccine_a.timepoint_2, cellvaccine_b.timepoint_2, cellvaccine_a.timepoint_3, cellvaccine_b.timepoint_3, cellvaccine_a.timepoint_4, cellvaccine_b.timepoint_4, sigma_log_cv
-#>   sigma fixef cols: Estimate, Est.Error, Q2.5, Q97.5
 #>   phi = 2.885  [2.03, 4.07]
 #>   beta1 = 1.024  [0.829, 1.2]
 #>   interpretation: moderate precision weighting

@@ -512,7 +512,7 @@ reflect the data; the narrower prior gives more conservative
 
 ``` r
 sessionInfo()
-#> R version 4.5.1 (2025-06-13 ucrt)
+#> R version 4.5.2 (2025-10-31 ucrt)
 #> Platform: x86_64-w64-mingw32/x64
 #> Running under: Windows 11 x64 (build 26100)
 #> 
@@ -533,19 +533,19 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] dplyr_1.2.1         curveRweights_0.1.0
+#> [1] dplyr_1.2.1         curveRweights_0.2.1
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6          tensorA_0.36.2.1      QuickJSR_1.9.2       
 #>  [4] xfun_0.57             bslib_0.11.0          ggplot2_4.0.3        
 #>  [7] htmlwidgets_1.6.4     inline_0.3.21         lattice_0.22-7       
-#> [10] vctrs_0.7.3           tools_4.5.1           generics_0.1.4       
-#> [13] curl_7.1.0            stats4_4.5.1          parallel_4.5.1       
+#> [10] vctrs_0.7.3           tools_4.5.2           generics_0.1.4       
+#> [13] curl_7.1.0            stats4_4.5.2          parallel_4.5.2       
 #> [16] sandwich_3.1-1        tibble_3.3.1          pkgconfig_2.0.3      
-#> [19] brms_2.23.0           Matrix_1.7-3          checkmate_2.3.4      
+#> [19] brms_2.23.0           Matrix_1.7-4          checkmate_2.3.4      
 #> [22] RColorBrewer_1.1-3    S7_0.2.2              desc_1.4.3           
-#> [25] distributional_0.7.0  RcppParallel_5.1.11-2 lifecycle_1.0.5      
-#> [28] compiler_4.5.1        farver_2.1.2          stringr_1.6.0        
+#> [25] distributional_0.8.1  RcppParallel_5.1.11-2 lifecycle_1.0.5      
+#> [28] compiler_4.5.2        farver_2.1.2          stringr_1.6.0        
 #> [31] textshaping_1.0.5     Brobdingnag_1.2-9     codetools_0.2-20     
 #> [34] htmltools_0.5.9       sass_0.4.10           bayesplot_1.15.0     
 #> [37] yaml_2.3.12           pillar_1.11.1         pkgdown_2.2.0        
@@ -553,16 +553,16 @@ sessionInfo()
 #> [43] StanHeaders_2.32.10   bridgesampling_1.2-1  abind_1.4-8          
 #> [46] multcomp_1.4-30       nlme_3.1-168          rstan_2.32.7         
 #> [49] posterior_1.7.0       tidyselect_1.2.1      digest_0.6.39        
-#> [52] mvtnorm_1.3-5         stringi_1.8.7         splines_4.5.1        
-#> [55] fastmap_1.2.0         grid_4.5.1            cli_3.6.6            
-#> [58] magrittr_2.0.5        loo_2.9.0             pkgbuild_1.4.8       
+#> [52] mvtnorm_1.3-5         stringi_1.8.7         splines_4.5.2        
+#> [55] fastmap_1.2.0         grid_4.5.2            cli_3.6.6            
+#> [58] magrittr_2.0.5        loo_2.9.0.9000        pkgbuild_1.4.8       
 #> [61] survival_3.8-3        TH.data_1.1-5         scales_1.4.0         
-#> [64] backports_1.5.0       estimability_1.5.1    rmarkdown_2.31       
+#> [64] backports_1.5.1       estimability_1.5.1    rmarkdown_2.31       
 #> [67] matrixStats_1.5.0     emmeans_2.0.2         otel_0.2.0           
 #> [70] gridExtra_2.3         ragg_1.5.1            zoo_1.8-15           
 #> [73] coda_0.19-4.1         evaluate_1.0.5        knitr_1.51           
 #> [76] V8_8.0.1              rstantools_2.6.0      rlang_1.2.0          
 #> [79] Rcpp_1.1.1-1.1        xtable_1.8-8          glue_1.8.1           
-#> [82] rstudioapi_0.18.0     jsonlite_2.0.0        R6_2.6.1             
-#> [85] systemfonts_1.3.2     fs_2.1.0
+#> [82] jsonlite_2.0.0        R6_2.6.1              systemfonts_1.3.2    
+#> [85] fs_2.1.0
 ```

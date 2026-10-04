@@ -100,7 +100,6 @@ dat_sub <- example_assay[example_assay$antigen == "prn" &
                          example_assay$feature == "IgG1", ]
 d <- prepare_cv(dat_sub, pcov_col = "pcov")              # legacy: auto
 d2 <- prepare_cv(dat_sub, predictor = "se")              # se as predictor
-#> Error in prepare_cv(dat_sub, predictor = "se"): unused argument (predictor = "se")
 head(d[, c("yi", "cv_i", "log_cv", "cv_source")])
 #>             yi      cv_i     log_cv cv_source
 #> 11   0.9707595 0.1126505 -2.1834647      pcov
