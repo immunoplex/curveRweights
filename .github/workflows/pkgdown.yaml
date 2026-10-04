@@ -43,7 +43,14 @@ jobs:
           # mentioning it is also commented out, and every Stan-fitting
           # vignette chunk is eval = FALSE) -- confirmed by grep before
           # making this change.
-          extra-packages: any::pkgdown, curveRbayes=?ignore
+          #
+          # local::. installs curveRweights itself, not just its
+          # dependencies (the default packages: deps::., any::sessioninfo
+          # only installs dependencies) -- pkgdown's build_reference() needs
+          # library(curveRweights) to actually load to run examples. This gap
+          # was never reached before: every prior run of this workflow
+          # failed earlier, at dependency resolution.
+          extra-packages: any::pkgdown, curveRbayes=?ignore, local::.
           needs: website
 
       - name: Build site
