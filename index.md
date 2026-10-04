@@ -1,0 +1,165 @@
+# curveRweights
+
+Bayesian precision weighting from calibration curve uncertainty for the
+curveR suite.
+
+## Installation
+
+``` r
+
+# Install curveRcore first
+devtools::install_github("immunoplex/curveRcore")
+# Then curveRweights
+devtools::install_github("immunoplex/curveRweights")
+```
+
+### Stan backend
+
+curveRweights fits models via **brms**, which requires a Stan backend.
+Either `rstan` or `cmdstanr` works:
+
+``` r
+
+# Option A: rstan (simpler)
+install.packages("rstan")
+
+# Option B: cmdstanr (faster compilation)
+install.packages("cmdstanr",
+                 repos = c("https://stan-dev.r-universe.dev",
+                           getOption("repos")))
+cmdstanr::install_cmdstan()
+```
+
+## The problem
+
+Immunoassay measurements are determined via a calibration curve. Each
+observation has a standard error (`se_concentration`) and percent CV
+(`pcov`) that quantify how precisely the curve determines that
+concentration. Observations near the limits of quantification are
+imprecise; midrange observations are precise.
+
+Traditional approaches handle this with a **binary gate**: include
+between LLOQ and ULOQ, exclude otherwise. This discards information
+(excluded observations still carry signal) and treats all included
+observations as equally precise (they are not).
+
+## The solution
+
+curveRweights estimates the **continuous, power-law relationship**
+between calibration-curve precision and residual variance using a joint
+Bayesian location-scale model:
+
+    sigma_i = phi * se_i^beta1
+    w_i     = 1 / sigma_i^2
+
+**phi** (baseline scaling) captures variance inflation beyond what the
+calibration curve predicts — biological scatter, plate effects, matrix
+interference. When phi = 1, `se_concentration` is a perfectly calibrated
+residual SD.
+
+**beta1** (precision exponent) captures how steeply precision drives
+weight differentiation. beta1 = 1 is the delta-method prediction (sigma
+proportional to se). Values \> 1 amplify the gradient; \< 1 compress it.
+
+## Quick start — curveR ecosystem
+
+``` r
+
+library(curveRweights)
+
+# mp is a calibration_result_multiplate from curveRfreq or curveRbayes.
+# Design columns (timeperiod, cohort_arm) must be on the samples data
+# frame BEFORE fitting — the fitter carries them through.
+
+# Step 1: Build the weight-input frame
+wd <- as_weight_data(mp, design = c("timeperiod", "cohort_arm"))
+
+# Step 2: Estimate weights
+pw <- fit_precision_weights(wd)
+pw
+#> <precision_weights>
+#>   phi   = 1.12  [0.98, 1.28]
+#>   beta1 = 0.94  [0.71, 1.18]
+#>   regime: moderate precision weighting
+
+# Step 3: Join weights back onto samples
+samples_w <- join_weights(curveRcore::tidy_samples(mp), pw)
+
+# Step 4: Draw a continuous weight profile across the grid
+profile <- predict_weights(pw, newdata = mp)
+```
+
+## Quick start — standalone (foreign data)
+
+``` r
+
+library(curveRweights)
+data(example_assay)
+
+# Select one antigen × feature
+dat <- example_assay[example_assay$antigen == "prn" &
+                     example_assay$feature == "IgG1", ]
+
+# Create the saturated cell-means factor externally
+dat$cell <- interaction(dat$group_a, dat$group_b, drop = TRUE)
+
+# Fit per group
+batch <- fit_saturated_weight_batch(
+  datg       = dat,
+  group_vars = "antigen",
+  cell_col   = "cell",
+  pcov_col   = "pcov",
+  plate_col  = "plate",
+  iter       = 4000, warmup = 1000, chains = 4, cores = 4
+)
+
+# Scale summary
+batch$scale_table
+
+# Weights are on every row
+summary(batch$data$w_saturated_norm)
+```
+
+------------------------------------------------------------------------
+
+## Core functions
+
+| Function | Purpose |
+|----|----|
+| [`as_weight_data()`](https://immunoplex.github.io/curveRweights/reference/as_weight_data.md) | Build standardised weight input from a `calibration_result(_multiplate)` or plain data frame |
+| [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md) | Estimate phi and beta1 from a `weight_data` object (curveR ecosystem entry point) |
+| [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md) | Apply fitted weights to new data or a precision grid without refitting |
+| [`join_weights()`](https://immunoplex.github.io/curveRweights/reference/join_weights.md) | Left-join estimated weights back onto a sample data frame |
+| [`prepare_cv()`](https://immunoplex.github.io/curveRweights/reference/prepare_cv.md) | Compute yi, cv_i, log_cv from concentration + precision index |
+| [`diagnose_cv()`](https://immunoplex.github.io/curveRweights/reference/diagnose_cv.md) | Check whether the precision index has enough variation for beta1 estimation |
+| [`interpret_beta1()`](https://immunoplex.github.io/curveRweights/reference/interpret_beta1.md) | Classify beta1 into precision-weighting regimes |
+| [`compute_saturated_weights()`](https://immunoplex.github.io/curveRweights/reference/compute_saturated_weights.md) | Deterministic weight computation from (gamma_0, gamma_1) |
+| [`weight_diagnostics()`](https://immunoplex.github.io/curveRweights/reference/weight_diagnostics.md) | n_eff, weight_ratio, Gini coefficient summary |
+| [`fit_saturated_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_saturated_weight.md) | Core: fit the joint Bayesian location-scale model |
+| [`fit_saturated_weight_batch()`](https://immunoplex.github.io/curveRweights/reference/fit_saturated_weight_batch.md) | Fit across multiple groups (e.g. antigen × source) |
+| [`apply_saturated_weights()`](https://immunoplex.github.io/curveRweights/reference/apply_saturated_weights.md) | Apply saved scale estimates to new data without refitting |
+
+------------------------------------------------------------------------
+
+## Troubleshooting
+
+| Problem | Fix |
+|----|----|
+| `brms` not found | `install.packages("brms")` |
+| No Stan backend | Install `rstan` or `cmdstanr` (see above) |
+| “cell_col not found” | Create the cell factor externally before calling the fit function |
+| “every cell is a singleton” | Coarsen the design grouping — cells need within-cell replication |
+| “sd(log_cv) \< 0.05” | Precision index has insufficient variation; model falls back to uniform weights |
+| Divergent transitions | Increase `adapt_delta` (e.g. 0.99); check prior sensitivity |
+| Rhat \> 1.05 | Increase `iter` and `warmup`; check for data issues |
+| `se_concentration` not found | Ensure the calibration result includes SE propagation (curveRfreq ≥ 0.1.0, curveRbayes ≥ 0.2.0) |
+
+------------------------------------------------------------------------
+
+See
+[`vignette("precision-weighting", package = "curveRweights")`](https://immunoplex.github.io/curveRweights/articles/precision-weighting.md)
+for the full worked example.
+
+## License
+
+AGPL-3.0
