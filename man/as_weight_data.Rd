@@ -56,15 +56,26 @@ as_weight_data(
 or \code{data.frame}.}
 
 \item{design}{Character vector of design-group column names that define the
-saturated cells (e.g. \code{c("timeperiod", "cohort_arm")}). These must be
-present on the input. For a \code{calibration_result(_multiplate)} they are
-carried through from the original \code{samples} data frame passed at fit
-time --- if they are absent, supply them on the fitting input first, or use
-the \code{data.frame} method with a pre-joined frame.}
+saturated cells (e.g. \code{c("timeperiod", "cohort_arm")}). Required, and
+must be present on the input, when \code{source = "samples"}: for a
+\code{calibration_result(_multiplate)} these are carried through from the
+original \code{samples} data frame passed at fit time --- if they are
+absent, supply them on the fitting input first, or use the
+\code{data.frame} method with a pre-joined frame. Ignored (silently
+intersected with the available columns) when \code{source = "grid"}: see
+\code{source} below.}
 
-\item{source}{\code{"samples"} (default) extracts per-sample predictions;
+\item{source}{\code{"samples"} (default) extracts per-sample predictions,
+validates that every \code{design} column is present, and builds the
+\code{.cell} saturated-cell factor used by \code{\link[=fit_precision_weights]{fit_precision_weights()}}.
 \code{"grid"} extracts the precision grid (used by \code{\link[=predict_weights]{predict_weights()}} to
-build a continuous weight profile).}
+build a continuous weight profile): \code{curveRcore::tidy_grid()} returns
+a per-curve concentration profile, not a per-design-cell table, so it
+never carries the original \code{samples} design columns. \code{design}
+and the \code{.cell}/within-cell-replication checks therefore do not apply
+to \code{source = "grid"} --- the profile only needs
+\code{se}/\code{concentration}/\code{pcov}, which \code{\link[=predict_weights]{predict_weights()}}
+consumes directly.}
 
 \item{conc_scale}{Location-response scale: \code{"log10"} (default, uses
 \code{predicted_concentration}) or \code{"natural"} (uses
@@ -89,9 +100,11 @@ A data frame (class \code{weight_data}) with at least: \code{obs_id},
 \code{concentration} (location response on \code{conc_scale}),
 \code{predicted_concentration} (log10, for the estimator), \code{se}
 (= \code{se_concentration}, the canonical uncapped scale predictor),
-\code{pcov} (reference only), \code{pcov_pass}, the \code{design} columns,
-and \code{.cell}. Carries attributes \code{conc_scale},
-\code{is_log_independent}, \code{design}, \code{plate_in_cell}.
+\code{pcov} (reference only), \code{pcov_pass}, and, when \code{source =
+  "samples"} (or any \code{design} columns are present on a \code{"grid"}
+input), the \code{design} columns and \code{.cell}. Carries attributes
+\code{conc_scale}, \code{is_log_independent}, \code{design} (resolved to
+the columns actually present), \code{plate_in_cell}.
 }
 \description{
 Converts a curveRcore \code{calibration_result} or

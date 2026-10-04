@@ -68,6 +68,63 @@ test_that("as_weight_data errors when every cell is a singleton", {
                "singleton")
 })
 
+test_that("as_weight_data(source = 'grid') does not require design columns", {
+  # Regression test: curveRcore::tidy_grid() returns a per-curve concentration
+  # *profile* (one row per grid point), never the original `samples` design
+  # columns (timeperiod, cohort_arm, ...) -- those only exist on
+  # curveRcore::tidy_samples(). predict_weights() always calls
+  # as_weight_data(newdata, design = object$design, source = "grid")
+  # internally, so requiring `design` for source = "grid" made that
+  # documented, intended usage fail unconditionally. Build a minimal
+  # calibration_result_multiplate by hand (no curveRfreq/curveRbayes needed)
+  # to exercise the real dispatch path.
+  make_plate <- function(cid) {
+    curveRcore::new_calibration_result(
+      meta = list(method = "frequentist", package = "test", curve_id = cid,
+                 response_var = "mfi", independent_var = "concentration",
+                 is_log_response = TRUE, is_log_independent = TRUE),
+      grid = data.frame(
+        predicted_concentration = seq(-1, 1, length.out = 5),
+        se_concentration        = seq(0.3, 0.1, length.out = 5),
+        pcov                    = seq(70, 20, length.out = 5),
+        pcov_pass               = c(FALSE, TRUE, TRUE, TRUE, TRUE)
+      ),
+      samples = data.frame(
+        sampleid                = paste0("S", 1:4),
+        predicted_concentration = c(-1, 0, 1, -1),
+        se_concentration        = c(0.3, 0.2, 0.1, 0.25),
+        pcov                    = c(70, 46, 23, 58),
+        pcov_pass               = c(FALSE, TRUE, TRUE, TRUE),
+        timeperiod               = c("t1", "t1", "t2", "t2"),
+        cohort_arm               = c("a", "a", "a", "a")
+      )
+    )
+  }
+  mp <- curveRcore::new_calibration_result_multiplate(
+    meta = list(method = "frequentist", package = "test", curve_ids = c("p1", "p2"),
+               is_log_independent = TRUE),
+    plates = list(p1 = make_plate("p1"), p2 = make_plate("p2"))
+  )
+
+  # source = "samples" (default): design required, .cell built.
+  wd <- suppressWarnings(
+    as_weight_data(mp, design = c("timeperiod", "cohort_arm"))
+  )
+  expect_true(".cell" %in% names(wd))
+  expect_identical(attr(wd, "design"), c("timeperiod", "cohort_arm"))
+
+  # source = "grid": design columns are absent from tidy_grid() output --
+  # must NOT error, must drop to an empty resolved design, and must NOT
+  # build .cell (there is no per-sample cell structure in a profile).
+  wdg <- suppressWarnings(
+    as_weight_data(mp, design = c("timeperiod", "cohort_arm"), source = "grid")
+  )
+  expect_s3_class(wdg, "weight_data")
+  expect_false(".cell" %in% names(wdg))
+  expect_identical(attr(wdg, "design"), character(0))
+  expect_equal(nrow(wdg), 10L)  # 2 plates x 5 grid points
+})
+
 test_that("as_weight_data warns but keeps out-of-range rows by default", {
   df <- data.frame(
     predicted_concentration = c(-1, 0, 1, -1, 0, 1),

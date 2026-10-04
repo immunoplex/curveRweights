@@ -1,6 +1,6 @@
 Package: curveRweights
 Title: Bayesian Precision Weighting from Calibration Curve Uncertainty
-Version: 0.2.0
+Version: 0.2.1
 Authors@R:
     person("Immunoplex", role = c("aut", "cre"),
            email = "maintainer@immunoplex.org")

@@ -16,14 +16,25 @@
 #' @param x A \code{calibration_result}, \code{calibration_result_multiplate},
 #'   or \code{data.frame}.
 #' @param design Character vector of design-group column names that define the
-#'   saturated cells (e.g. \code{c("timeperiod", "cohort_arm")}). These must be
-#'   present on the input. For a \code{calibration_result(_multiplate)} they are
-#'   carried through from the original \code{samples} data frame passed at fit
-#'   time --- if they are absent, supply them on the fitting input first, or use
-#'   the \code{data.frame} method with a pre-joined frame.
-#' @param source \code{"samples"} (default) extracts per-sample predictions;
+#'   saturated cells (e.g. \code{c("timeperiod", "cohort_arm")}). Required, and
+#'   must be present on the input, when \code{source = "samples"}: for a
+#'   \code{calibration_result(_multiplate)} these are carried through from the
+#'   original \code{samples} data frame passed at fit time --- if they are
+#'   absent, supply them on the fitting input first, or use the
+#'   \code{data.frame} method with a pre-joined frame. Ignored (silently
+#'   intersected with the available columns) when \code{source = "grid"}: see
+#'   \code{source} below.
+#' @param source \code{"samples"} (default) extracts per-sample predictions,
+#'   validates that every \code{design} column is present, and builds the
+#'   \code{.cell} saturated-cell factor used by [fit_precision_weights()].
 #'   \code{"grid"} extracts the precision grid (used by [predict_weights()] to
-#'   build a continuous weight profile).
+#'   build a continuous weight profile): \code{curveRcore::tidy_grid()} returns
+#'   a per-curve concentration profile, not a per-design-cell table, so it
+#'   never carries the original \code{samples} design columns. \code{design}
+#'   and the \code{.cell}/within-cell-replication checks therefore do not apply
+#'   to \code{source = "grid"} --- the profile only needs
+#'   \code{se}/\code{concentration}/\code{pcov}, which [predict_weights()]
+#'   consumes directly.
 #' @param conc_scale Location-response scale: \code{"log10"} (default, uses
 #'   \code{predicted_concentration}) or \code{"natural"} (uses
 #'   \code{final_concentration} when present, else \code{10^predicted_concentration}).
@@ -42,9 +53,11 @@
 #'   \code{concentration} (location response on \code{conc_scale}),
 #'   \code{predicted_concentration} (log10, for the estimator), \code{se}
 #'   (= \code{se_concentration}, the canonical uncapped scale predictor),
-#'   \code{pcov} (reference only), \code{pcov_pass}, the \code{design} columns,
-#'   and \code{.cell}. Carries attributes \code{conc_scale},
-#'   \code{is_log_independent}, \code{design}, \code{plate_in_cell}.
+#'   \code{pcov} (reference only), \code{pcov_pass}, and, when \code{source =
+#'   "samples"} (or any \code{design} columns are present on a \code{"grid"}
+#'   input), the \code{design} columns and \code{.cell}. Carries attributes
+#'   \code{conc_scale}, \code{is_log_independent}, \code{design} (resolved to
+#'   the columns actually present), \code{plate_in_cell}.
 #'
 #' @seealso [fit_precision_weights()], [predict_weights()],
 #'   \code{curveRcore::tidy_samples()}
@@ -131,15 +144,31 @@ as_weight_data.data.frame <- function(
     stop("as_weight_data: no rows extracted from the calibration result ",
          "(source = '", source, "'). Were samples provided to the fit?")
 
-  # ---- design columns must be present --------------------------------------
-  missing_design <- setdiff(design, names(tidy))
-  if (length(missing_design) > 0)
-    stop("as_weight_data: design column(s) not found: ",
-         paste(missing_design, collapse = ", "), ".\n",
-         "  Design metadata (e.g. timeperiod, cohort_arm) is carried through ",
-         "from the `samples` data frame passed to the fitting call -- it is ",
-         "not invented by the fitter. Add these columns to `samples` before ",
-         "fitting, or use as_weight_data() on a pre-joined data.frame.")
+  # `source = "grid"` builds a continuous precision *profile* -- one row per
+  # concentration grid point from curveRcore::tidy_grid(), keyed by
+  # curve_id/concentration. tidy_grid() never carries the original `samples`
+  # design columns (timeperiod, cohort_arm, ...): the grid is a per-curve
+  # profile, not a per-design-cell table. Requiring `design` here would make
+  # predict_weights(source = "grid") -- its sole, documented consumer --
+  # always fail. The design/cell contract (presence + within-cell
+  # replication) backs the *fitting* table (source = "samples"), which feeds
+  # fit_precision_weights()'s saturated cell-means location model; it does not
+  # apply to a prediction profile, which only needs se/concentration/pcov.
+  is_profile <- identical(source, "grid")
+
+  # ---- design columns must be present (fitting table only) -----------------
+  if (is_profile) {
+    design <- intersect(design, names(tidy))
+  } else {
+    missing_design <- setdiff(design, names(tidy))
+    if (length(missing_design) > 0)
+      stop("as_weight_data: design column(s) not found: ",
+           paste(missing_design, collapse = ", "), ".\n",
+           "  Design metadata (e.g. timeperiod, cohort_arm) is carried through ",
+           "from the `samples` data frame passed to the fitting call -- it is ",
+           "not invented by the fitter. Add these columns to `samples` before ",
+           "fitting, or use as_weight_data() on a pre-joined data.frame.")
+  }
 
   if (!"se_concentration" %in% names(tidy))
     stop("as_weight_data: 'se_concentration' not found in the extracted table.")
@@ -175,7 +204,8 @@ as_weight_data.data.frame <- function(
   cell_terms <- design
   if (plate_in_cell && "curve_id" %in% names(out))
     cell_terms <- c(design, "curve_id")
-  out$.cell <- interaction(out[cell_terms], drop = TRUE, sep = "|")
+  if (length(cell_terms) > 0L)
+    out$.cell <- interaction(out[cell_terms], drop = TRUE, sep = "|")
 
   # ---- out-of-range policy --------------------------------------------------
   if ("pcov_pass" %in% names(out)) {
@@ -193,16 +223,23 @@ as_weight_data.data.frame <- function(
     }
   }
 
-  # ---- within-cell replication check ---------------------------------------
-  tab <- table(out$.cell)
-  if (all(tab < 2))
-    stop("as_weight_data: every cell is a singleton (max n per cell = ",
-         max(tab), "). The saturated cell-means location model needs ",
-         "within-cell replication to identify the residual scale. Use coarser ",
-         "design grouping.")
-  if (nlevels(out$.cell) < 2)
-    stop("as_weight_data: only ", nlevels(out$.cell),
-         " cell level. Need >= 2.")
+  # ---- within-cell replication check (fitting table only) -------------------
+  # A prediction profile (source = "grid") has no design cells to validate --
+  # see the note above `is_profile` is set.
+  if (!is_profile) {
+    if (!".cell" %in% names(out))
+      stop("as_weight_data: `design` resolved to no columns; ",
+           "fit_precision_weights() needs at least one design column.")
+    tab <- table(out$.cell)
+    if (all(tab < 2))
+      stop("as_weight_data: every cell is a singleton (max n per cell = ",
+           max(tab), "). The saturated cell-means location model needs ",
+           "within-cell replication to identify the residual scale. Use coarser ",
+           "design grouping.")
+    if (nlevels(out$.cell) < 2)
+      stop("as_weight_data: only ", nlevels(out$.cell),
+           " cell level. Need >= 2.")
+  }
 
   attr(out, "conc_scale")          <- conc_scale
   attr(out, "is_log_independent")  <- is_log_independent
