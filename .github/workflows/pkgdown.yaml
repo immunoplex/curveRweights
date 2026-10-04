@@ -20,6 +20,22 @@ jobs:
         with:
           extra-packages: any::pkgdown
           needs: website
+          # Hard deps only (Imports: curveRcore, brms, dplyr, rlang, stats,
+          # tibble) + whatever Config/Needs/website in DESCRIPTION adds
+          # (knitr, rmarkdown, for the vignette). The default "all" would also
+          # pull in every Suggests package -- notably curveRbayes, which
+          # cannot even be installed on a bare runner: it has top-level code
+          # in R/helper-cmdstan.R (misplaced; belongs in tests/testthat/, a
+          # testthat helper file, not a package source file) that eagerly
+          # calls cmdstanr::cmdstan_path() at package-load/build time,
+          # unconditionally once the cmdstanr *R package* is present --
+          # erroring with "CmdStan path has not been set yet" on any machine
+          # without CmdStan itself installed. No example or vignette chunk in
+          # this package actually requires curveRfreq/curveRbayes to execute
+          # (the one @examplesIf-guarded example is also commented out, and
+          # every Stan-fitting vignette chunk is eval = FALSE), so excluding
+          # them from the site build is safe.
+          dependencies: '"hard"'
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE)
