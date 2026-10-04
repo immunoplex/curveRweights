@@ -39,9 +39,6 @@ Additional_repositories: https://stan-dev.r-universe.dev
 SystemRequirements: A Stan backend for brms (rstan or cmdstanr); see
     https://immunoplex.github.io/curveR/articles/installation.html
 Config/testthat/edition: 3
-Config/Needs/website:
-    knitr,
-    rmarkdown
 License: AGPL (>= 3) + file LICENSE
 VignetteBuilder: knitr
 URL: https://immunoplex.github.io/curveRweights/, https://github.com/immunoplex/curveRweights

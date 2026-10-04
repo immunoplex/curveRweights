@@ -18,24 +18,33 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown
+          # curveRbayes (a Suggests, pulled in by needs: website's default
+          # dependencies: "all") cannot be installed on a bare runner: it has
+          # top-level code in R/helper-cmdstan.R (misplaced -- it's a
+          # testthat helper, belongs in tests/testthat/, not a package source
+          # file) that eagerly calls cmdstanr::cmdstan_path() at
+          # package-load/build time, unconditionally once the cmdstanr *R
+          # package* is present, regardless of whether the CmdStan *toolchain*
+          # is installed. Fails with "CmdStan path has not been set yet"
+          # during ordinary package install, not just on use.
+          #
+          # Tried restricting dependencies: "hard" first (only Imports/
+          # Depends/LinkingTo) -- that broke resolution of curveRcore itself:
+          # pak's "hard" dependency-type path doesn't consult the Remotes:
+          # field the same way "all" does, so it looked for curveRcore on
+          # CRAN and failed ("Can't find package called curveRcore"), even
+          # though Remotes: immunoplex/curveRcore is right there in
+          # DESCRIPTION. Ignoring the one problem package directly, via pak's
+          # documented `pkg=?ignore` syntax, is more surgical and keeps the
+          # normal "all" resolution path (and its Remotes handling) intact.
+          #
+          # Safe: no example or vignette chunk in this package actually
+          # executes curveRbayes code (the sole @examplesIf-guarded example
+          # mentioning it is also commented out, and every Stan-fitting
+          # vignette chunk is eval = FALSE) -- confirmed by grep before
+          # making this change.
+          extra-packages: any::pkgdown, curveRbayes=?ignore
           needs: website
-          # Hard deps only (Imports: curveRcore, brms, dplyr, rlang, stats,
-          # tibble) + whatever Config/Needs/website in DESCRIPTION adds
-          # (knitr, rmarkdown, for the vignette). The default "all" would also
-          # pull in every Suggests package -- notably curveRbayes, which
-          # cannot even be installed on a bare runner: it has top-level code
-          # in R/helper-cmdstan.R (misplaced; belongs in tests/testthat/, a
-          # testthat helper file, not a package source file) that eagerly
-          # calls cmdstanr::cmdstan_path() at package-load/build time,
-          # unconditionally once the cmdstanr *R package* is present --
-          # erroring with "CmdStan path has not been set yet" on any machine
-          # without CmdStan itself installed. No example or vignette chunk in
-          # this package actually requires curveRfreq/curveRbayes to execute
-          # (the one @examplesIf-guarded example is also commented out, and
-          # every Stan-fitting vignette chunk is eval = FALSE), so excluding
-          # them from the site build is safe.
-          dependencies: '"hard"'
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE)
