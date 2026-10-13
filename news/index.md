@@ -1,5 +1,15 @@
 # Changelog
 
+## curveRweights 0.2.2
+
+- [`vignette("precision-weighting")`](https://immunoplex.github.io/curveRweights/articles/precision-weighting.md)
+  gains a “Weights and censored samples” section: why weighting
+  out-of-range samples biases location estimates, how to apply weights
+  only to quantified samples and represent the rest by their censoring
+  bounds (`classify_censoring_multiplate()` in curveRcore), and a note
+  that censoring-aware weight estimation is planned, not yet
+  implemented.
+
 ## curveRweights 0.2.0
 
 ### curveR ecosystem integration

@@ -378,6 +378,78 @@ summary(dat_comparison$w_saturated_norm)
 
 ------------------------------------------------------------------------
 
+## Weights and censored samples
+
+Everything above treats each sample as a point with a precision. Samples
+outside the quantifiable range are different, and curveRcore (which
+curveRweights imports) labels them: `classify_censoring_multiplate()`
+adds `censor_class`, `censor_type` and the bounds that class implies
+(see
+[`vignette("getting-started", package = "curveRcore")`](https://immunoplex.github.io/curveRcore/articles/getting-started.html),
+section Censoring).
+
+It is tempting to apply the weights to every row. For samples out of
+range that goes wrong: their reported precision is poor *because* their
+concentration is low (or high), so inverse-variance weighting
+down-weights exactly the samples that carry the information, and
+weighted means drift towards the middle of the curve. This happens even
+when the precision values are known exactly:
+
+``` r
+
+set.seed(7)
+n   <- 20000
+mu  <- c(low = 0.6, high = 2.0)                    # true group means, log10
+grp <- rep(names(mu), each = n)
+tru <- rnorm(2 * n, mean = rep(mu, each = n), sd = 0.4)
+se_fun <- function(y) 0.05 + 0.35 * plogis((0.5 - y) / 0.15) +
+                              0.35 * plogis((y - 3.0) / 0.15)    # U-shaped profile
+obs <- tru + rnorm(2 * n, 0, se_fun(tru))
+w   <- 1 / se_fun(obs)^2                           # weights taken from each sample's own SE
+
+rbind(truth      = mu,
+      unweighted = tapply(obs, grp, mean)[names(mu)],
+      weighted   = tapply(obs * w, grp, sum)[names(mu)] / tapply(w, grp, sum)[names(mu)])
+#>                  low     high
+#> truth      0.6000000 2.000000
+#> unweighted 0.6014621 2.000376
+#> weighted   1.0221110 1.939593
+```
+
+The weighted mean of the low group is pulled up; the high group is
+barely affected because most of its mass sits where precision is good.
+So:
+
+- use the weights for **in-range (`quantified`) samples**, where the
+  variation in precision is ordinary measurement noise;
+- represent **out-of-range samples by their censoring bounds**
+  (`censor_lower`, `censor_upper`) rather than by a weight;
+- report which rows each approach was applied to, and compare against a
+  censoring-only analysis as a sensitivity check.
+
+``` r
+
+# `mp` is the fitted multiplate object; curveRcore (always installed with
+# curveRweights) supplies the censoring labels
+mp <- curveRcore::classify_pcov_gates_multiplate(mp)
+mp <- curveRcore::classify_censoring_multiplate(mp)
+samples_w <- join_weights(curveRcore::tidy_samples(mp), pw)
+s <- samples_w
+s$w_use <- ifelse(s$censor_type == "none", s$w_norm, NA_real_)   # weights only where quantified
+# fit a weighted model on s[s$censor_type == "none", ] and handle the rest with
+# the interval bounds, e.g. a censored (Tobit) or Bayesian model
+```
+
+curveRweights does not yet fold the censored rows into its own
+likelihood: the current estimate of $`(\phi, \beta_1)`$ treats every row
+as a point. The planned extension has quantified rows keep the Gaussian
+contribution with $`\sigma_i = \phi\, s_i^{\beta_1}`$ while censored
+rows contribute a cumulative- probability term evaluated at the
+censoring bound, giving “a weight for in-range samples, a censoring
+indicator for out-of-range samples” in a single frame.
+
+------------------------------------------------------------------------
+
 ## Downstream analysis
 
 ### Weighted meta-regression with metafor
@@ -551,7 +623,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] dplyr_1.2.1         curveRweights_0.2.1
+#> [1] dplyr_1.2.1         curveRweights_0.2.2
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] tensorA_0.36.2.1     bridgesampling_1.2-1 sass_0.4.10         

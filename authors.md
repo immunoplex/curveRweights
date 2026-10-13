@@ -10,13 +10,13 @@ Source:
 [`DESCRIPTION`](https://github.com/immunoplex/curveRweights/blob/main/DESCRIPTION)
 
 Immunoplex (2026). *curveRweights: Bayesian Precision Weighting from
-Calibration Curve Uncertainty*. R package version 0.2.1,
+Calibration Curve Uncertainty*. R package version 0.2.2,
 <https://immunoplex.github.io/curveRweights/>.
 
     @Manual{,
       title = {curveRweights: Bayesian Precision Weighting from Calibration Curve Uncertainty},
       author = {{Immunoplex}},
       year = {2026},
-      note = {R package version 0.2.1},
+      note = {R package version 0.2.2},
       url = {https://immunoplex.github.io/curveRweights/},
     }
