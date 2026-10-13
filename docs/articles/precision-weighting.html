@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -307,7 +307,7 @@ precision index.</p>
 column is used:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_igg1</span> <span class="op">&lt;-</span> <span class="va">example_assay</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">==</span> <span class="st">"IgG1"</span>, <span class="va">antigen</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pt"</span>, <span class="st">"fha"</span>, <span class="st">"prn"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">==</span> <span class="st">"IgG1"</span>, <span class="va">antigen</span> <span class="op"><a href="https://mc-stan.org/posterior/reference/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pt"</span>, <span class="st">"fha"</span>, <span class="st">"prn"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dat_igg1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_cv.html">prepare_cv</a></span><span class="op">(</span><span class="va">dat_igg1</span>, pcov_col <span class="op">=</span> <span class="st">"pcov"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_igg1</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"antigen"</span>, <span class="st">"patientid"</span>, <span class="st">"yi"</span>, <span class="st">"cv_i"</span>, <span class="st">"log_cv"</span>, <span class="st">"cv_source"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -457,12 +457,81 @@ near 2: pcov strongly drives weight differentiation.</li>
 subset for downstream analysis:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_comparison</span> <span class="op">&lt;-</span> <span class="va">batch</span><span class="op">$</span><span class="va">data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">group_a</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_a"</span>, <span class="st">"vaccine_b"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">group_a</span> <span class="op"><a href="https://mc-stan.org/posterior/reference/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_a"</span>, <span class="st">"vaccine_b"</span><span class="op">)</span>,</span>
 <span>         <span class="va">group_b</span> <span class="op">==</span> <span class="st">"timepoint_3"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">dat_comparison</span><span class="op">$</span><span class="va">w_saturated_norm</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
+</div>
+<div class="section level2">
+<h2 id="censoring">Weights and censored samples<a class="anchor" aria-label="anchor" href="#censoring"></a>
+</h2>
+<p>Everything above treats each sample as a point with a precision.
+Samples outside the quantifiable range are different, and curveRcore
+(which curveRweights imports) labels them:
+<code><a href="https://immunoplex.github.io/curveRcore/reference/classify_censoring_multiplate.html" class="external-link">classify_censoring_multiplate()</a></code> adds
+<code>censor_class</code>, <code>censor_type</code> and the bounds that
+class implies (see
+<code><a href="https://immunoplex.github.io/curveRcore/articles/getting-started.html" class="external-link">vignette("getting-started", package = "curveRcore")</a></code>,
+section Censoring).</p>
+<p>It is tempting to apply the weights to every row. For samples out of
+range that goes wrong: their reported precision is poor <em>because</em>
+their concentration is low (or high), so inverse-variance weighting
+down-weights exactly the samples that carry the information, and
+weighted means drift towards the middle of the curve. This happens even
+when the precision values are known exactly:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span>
+<span><span class="va">n</span>   <span class="op">&lt;-</span> <span class="fl">20000</span></span>
+<span><span class="va">mu</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>low <span class="op">=</span> <span class="fl">0.6</span>, high <span class="op">=</span> <span class="fl">2.0</span><span class="op">)</span>                    <span class="co"># true group means, log10</span></span>
+<span><span class="va">grp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">tru</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">n</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">mu</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span>
+<span><span class="va">se_fun</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="fl">0.05</span> <span class="op">+</span> <span class="fl">0.35</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="op">(</span><span class="fl">0.5</span> <span class="op">-</span> <span class="va">y</span><span class="op">)</span> <span class="op">/</span> <span class="fl">0.15</span><span class="op">)</span> <span class="op">+</span></span>
+<span>                              <span class="fl">0.35</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="fl">3.0</span><span class="op">)</span> <span class="op">/</span> <span class="fl">0.15</span><span class="op">)</span>    <span class="co"># U-shaped profile</span></span>
+<span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="va">tru</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">n</span>, <span class="fl">0</span>, <span class="fu">se_fun</span><span class="op">(</span><span class="va">tru</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">w</span>   <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">se_fun</span><span class="op">(</span><span class="va">obs</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span>                           <span class="co"># weights taken from each sample's own SE</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>truth      <span class="op">=</span> <span class="va">mu</span>,</span>
+<span>      unweighted <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">obs</span>, <span class="va">grp</span>, <span class="va">mean</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>      weighted   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">obs</span> <span class="op">*</span> <span class="va">w</span>, <span class="va">grp</span>, <span class="va">sum</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span><span class="op">]</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">w</span>, <span class="va">grp</span>, <span class="va">sum</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                  low     high</span></span>
+<span><span class="co">#&gt; truth      0.6000000 2.000000</span></span>
+<span><span class="co">#&gt; unweighted 0.6014621 2.000376</span></span>
+<span><span class="co">#&gt; weighted   1.0221110 1.939593</span></span></code></pre></div>
+<p>The weighted mean of the low group is pulled up; the high group is
+barely affected because most of its mass sits where precision is good.
+So:</p>
+<ul>
+<li>use the weights for <strong>in-range (<code>quantified</code>)
+samples</strong>, where the variation in precision is ordinary
+measurement noise;</li>
+<li>represent <strong>out-of-range samples by their censoring
+bounds</strong> (<code>censor_lower</code>, <code>censor_upper</code>)
+rather than by a weight;</li>
+<li>report which rows each approach was applied to, and compare against
+a censoring-only analysis as a sensitivity check.</li>
+</ul>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># `mp` is the fitted multiplate object; curveRcore (always installed with</span></span>
+<span><span class="co"># curveRweights) supplies the censoring labels</span></span>
+<span><span class="va">mp</span> <span class="op">&lt;-</span> <span class="fu">curveRcore</span><span class="fu">::</span><span class="fu"><a href="https://immunoplex.github.io/curveRcore/reference/classify_pcov_gates_multiplate.html" class="external-link">classify_pcov_gates_multiplate</a></span><span class="op">(</span><span class="va">mp</span><span class="op">)</span></span>
+<span><span class="va">mp</span> <span class="op">&lt;-</span> <span class="fu">curveRcore</span><span class="fu">::</span><span class="fu"><a href="https://immunoplex.github.io/curveRcore/reference/classify_censoring_multiplate.html" class="external-link">classify_censoring_multiplate</a></span><span class="op">(</span><span class="va">mp</span><span class="op">)</span></span>
+<span><span class="va">samples_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/join_weights.html">join_weights</a></span><span class="op">(</span><span class="fu">curveRcore</span><span class="fu">::</span><span class="fu"><a href="https://immunoplex.github.io/curveRcore/reference/tidy_samples.html" class="external-link">tidy_samples</a></span><span class="op">(</span><span class="va">mp</span><span class="op">)</span>, <span class="va">pw</span><span class="op">)</span></span>
+<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="va">samples_w</span></span>
+<span><span class="va">s</span><span class="op">$</span><span class="va">w_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">censor_type</span> <span class="op">==</span> <span class="st">"none"</span>, <span class="va">s</span><span class="op">$</span><span class="va">w_norm</span>, <span class="cn">NA_real_</span><span class="op">)</span>   <span class="co"># weights only where quantified</span></span>
+<span><span class="co"># fit a weighted model on s[s$censor_type == "none", ] and handle the rest with</span></span>
+<span><span class="co"># the interval bounds, e.g. a censored (Tobit) or Bayesian model</span></span></code></pre></div>
+<p>curveRweights does not yet fold the censored rows into its own
+likelihood: the current estimate of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>ϕ</mi><mo>,</mo><msub><mi>β</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\phi, \beta_1)</annotation></semantics></math>
+treats every row as a point. The planned extension has quantified rows
+keep the Gaussian contribution with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mi>i</mi></msub><mo>=</mo><mi>ϕ</mi><mspace width="0.167em"></mspace><msubsup><mi>s</mi><mi>i</mi><msub><mi>β</mi><mn>1</mn></msub></msubsup></mrow><annotation encoding="application/x-tex">\sigma_i = \phi\, s_i^{\beta_1}</annotation></semantics></math>
+while censored rows contribute a cumulative- probability term evaluated
+at the censoring bound, giving “a weight for in-range samples, a
+censoring indicator for out-of-range samples” in a single frame.</p>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="downstream">Downstream analysis<a class="anchor" aria-label="anchor" href="#downstream"></a>
@@ -473,12 +542,12 @@ subset for downstream analysis:</p>
 <p>The weights can be used directly in <code><a href="https://wviechtb.github.io/metafor/reference/rma.uni.html" class="external-link">metafor::rma()</a></code>.
 Because phi already captures residual heterogeneity, use
 <code>method = "FE"</code> to avoid double-counting:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://www.metafor-project.org" class="external-link">metafor</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dat_prn_t3</span> <span class="op">&lt;-</span> <span class="va">batch</span><span class="op">$</span><span class="va">data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">antigen</span> <span class="op">==</span> <span class="st">"prn"</span>, <span class="va">group_b</span> <span class="op">==</span> <span class="st">"timepoint_3"</span>,</span>
-<span>         <span class="va">group_a</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_a"</span>, <span class="st">"vaccine_b"</span><span class="op">)</span><span class="op">)</span></span>
+<span>         <span class="va">group_a</span> <span class="op"><a href="https://mc-stan.org/posterior/reference/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_a"</span>, <span class="st">"vaccine_b"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dat_prn_t3</span><span class="op">$</span><span class="va">conc_z</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span><span class="va">dat_prn_t3</span><span class="op">$</span><span class="va">predicted_concentration</span><span class="op">)</span></span>
 <span><span class="va">dat_prn_t3</span><span class="op">$</span><span class="va">vi</span>      <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="va">dat_prn_t3</span><span class="op">$</span><span class="va">w_saturated</span></span>
@@ -497,7 +566,7 @@ vaccine_b and vaccine_a.</p>
 </h3>
 <p>For a nonparametric comparison that respects the precision
 weights:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://r-survey.r-forge.r-project.org/survey/" class="external-link">survey</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">des</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, weights <span class="op">=</span> <span class="op">~</span><span class="va">w_saturated</span>, data <span class="op">=</span> <span class="va">dat_prn_t3</span><span class="op">)</span></span>
@@ -511,7 +580,7 @@ weights:</p>
 </h2>
 <p>If you receive new data from the same assay platform, apply the
 previously estimated scale parameters without refitting:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Save the scale_table from the batch fit</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">batch</span><span class="op">$</span><span class="va">scale_table</span>, <span class="st">"scale_table_IgG1.rds"</span><span class="op">)</span></span>
 <span></span>
@@ -531,7 +600,7 @@ previously estimated scale parameters without refitting:</p>
 </h2>
 <p><code><a href="../reference/weight_diagnostics.html">weight_diagnostics()</a></code> summarises the distribution and
 effective information content of a weight vector:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="fl">50</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/weight_diagnostics.html">weight_diagnostics</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $n_obs</span></span>
@@ -582,7 +651,7 @@ prediction of 1, 95% interval [0, 2]</li>
 <p>For groups where beta1 is far from 1 (e.g. prn with beta1 near 2),
 the prior exerts meaningful shrinkage. Test sensitivity by comparing
 results with wider priors:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Default prior</span></span>
 <span><span class="va">sw_default</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_saturated_weight.html">fit_saturated_weight</a></span><span class="op">(</span></span>
 <span>  <span class="va">dat_prn</span>, cell_col <span class="op">=</span> <span class="st">"cell"</span>, pcov_col <span class="op">=</span> <span class="st">"pcov"</span>, plate_col <span class="op">=</span> <span class="st">"plate"</span></span>
@@ -606,11 +675,11 @@ reflect the data; the narrower prior gives more conservative
 <div class="section level2">
 <h2 id="session">Session information<a class="anchor" aria-label="anchor" href="#session"></a>
 </h2>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31 ucrt)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
-<span><span class="co">#&gt; Running under: Windows 11 x64 (build 26100)</span></span>
+<span><span class="co">#&gt; Running under: Windows 11 x64 (build 26200)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
 <span><span class="co">#&gt;   LAPACK version 3.12.1</span></span>
@@ -629,7 +698,7 @@ reflect the data; the narrower prior gives more conservative
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] dplyr_1.2.1         curveRweights_0.2.1</span></span>
+<span><span class="co">#&gt; [1] dplyr_1.2.1         curveRweights_0.2.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;  [1] gtable_0.3.6          tensorA_0.36.2.1      QuickJSR_1.9.2       </span></span>

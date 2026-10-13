@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,11 +35,16 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.2" id="curverweights-022">curveRweights 0.2.2<a class="anchor" aria-label="anchor" href="#curverweights-022"></a></h2>
+<ul><li>
+<code><a href="../articles/precision-weighting.html">vignette("precision-weighting")</a></code> gains a “Weights and censored samples” section: why weighting out-of-range samples biases location estimates, how to apply weights only to quantified samples and represent the rest by their censoring bounds (<code><a href="https://immunoplex.github.io/curveRcore/reference/classify_censoring_multiplate.html" class="external-link">classify_censoring_multiplate()</a></code> in curveRcore), and a note that censoring-aware weight estimation is planned, not yet implemented.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="curverweights-020">curveRweights 0.2.0<a class="anchor" aria-label="anchor" href="#curverweights-020"></a></h2>
 <div class="section level3">
 <h3 id="curver-ecosystem-integration-0-2-0">curveR ecosystem integration<a class="anchor" aria-label="anchor" href="#curver-ecosystem-integration-0-2-0"></a></h3>
 <ul><li>
-<code><a href="../reference/as_weight_data.html">as_weight_data()</a></code> — adapter that converts a <code>calibration_result</code> or <code>calibration_result_multiplate</code> (from curveRfreq or curveRbayes) into the standardised <code>weight_data</code> frame consumed by the estimator. Dispatches via curveRcore’s <code>tidy_samples()</code> / <code>tidy_grid()</code> so the adapter never reaches into object internals. Also accepts a plain data frame for the legacy / foreign-data path.</li>
+<code><a href="../reference/as_weight_data.html">as_weight_data()</a></code> — adapter that converts a <code>calibration_result</code> or <code>calibration_result_multiplate</code> (from curveRfreq or curveRbayes) into the standardised <code>weight_data</code> frame consumed by the estimator. Dispatches via curveRcore’s <code><a href="https://immunoplex.github.io/curveRcore/reference/tidy_samples.html" class="external-link">tidy_samples()</a></code> / <code><a href="https://immunoplex.github.io/curveRcore/reference/tidy_grid.html" class="external-link">tidy_grid()</a></code> so the adapter never reaches into object internals. Also accepts a plain data frame for the legacy / foreign-data path.</li>
 <li>
 <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code> — curveR-ecosystem entry point. Wraps <code><a href="../reference/fit_saturated_weight.html">fit_saturated_weight()</a></code> with ecosystem defaults (<code>scale_predictor =   "se"</code>, automatic <code>curve_id</code> plate grouping, <code>weight_data</code> input). Returns a <code>precision_weights</code> S3 object with <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> and <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> methods.</li>
 <li>
@@ -85,7 +90,7 @@
 <ul><li>
 <code>as_weight_data(source = "grid")</code> required every <code>design</code> column (e.g. <code>timeperiod</code>, <code>cohort_arm</code>) to be present in the extracted table, but <code><a href="https://immunoplex.github.io/curveRcore/reference/tidy_grid.html" class="external-link">curveRcore::tidy_grid()</a></code> returns a per-curve concentration <em>profile</em> (keyed by <code>curve_id</code>/concentration), not a per-design-cell table — it never carries the original <code>samples</code> design columns. Since <code><a href="../reference/predict_weights.html">predict_weights()</a></code> always calls <code>as_weight_data(newdata, design = object$design, source =   "grid")</code> internally, calling it with a <code>calibration_result(_multiplate)</code> (its documented, intended usage) errored unconditionally with <code>"design column(s) not found"</code>.</li>
 <li>
-<code><a href="../reference/as_weight_data.html">as_weight_data()</a></code> now only requires/validates <code>design</code> and builds the <code>.cell</code> saturated-cell factor (with its within-cell-replication checks) for <code>source = "samples"</code> — the fitting table consumed by <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code>. For <code>source = "grid"</code>, <code>design</code> is intersected with whatever columns are actually present (currently none, from <code>tidy_grid()</code>) and the cell/replication checks are skipped, since <code><a href="../reference/predict_weights.html">predict_weights()</a></code> only ever reads <code>se</code>/<code>concentration</code>/<code>pcov</code> from the profile.</li>
+<code><a href="../reference/as_weight_data.html">as_weight_data()</a></code> now only requires/validates <code>design</code> and builds the <code>.cell</code> saturated-cell factor (with its within-cell-replication checks) for <code>source = "samples"</code> — the fitting table consumed by <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code>. For <code>source = "grid"</code>, <code>design</code> is intersected with whatever columns are actually present (currently none, from <code><a href="https://immunoplex.github.io/curveRcore/reference/tidy_grid.html" class="external-link">tidy_grid()</a></code>) and the cell/replication checks are skipped, since <code><a href="../reference/predict_weights.html">predict_weights()</a></code> only ever reads <code>se</code>/<code>concentration</code>/<code>pcov</code> from the profile.</li>
 </ul></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

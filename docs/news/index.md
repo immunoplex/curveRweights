@@ -1,5 +1,16 @@
 # Changelog
 
+## curveRweights 0.2.2
+
+- [`vignette("precision-weighting")`](https://immunoplex.github.io/curveRweights/articles/precision-weighting.md)
+  gains a “Weights and censored samples” section: why weighting
+  out-of-range samples biases location estimates, how to apply weights
+  only to quantified samples and represent the rest by their censoring
+  bounds
+  ([`classify_censoring_multiplate()`](https://immunoplex.github.io/curveRcore/reference/classify_censoring_multiplate.html)
+  in curveRcore), and a note that censoring-aware weight estimation is
+  planned, not yet implemented.
+
 ## curveRweights 0.2.0
 
 ### curveR ecosystem integration
@@ -8,9 +19,12 @@
   — adapter that converts a `calibration_result` or
   `calibration_result_multiplate` (from curveRfreq or curveRbayes) into
   the standardised `weight_data` frame consumed by the estimator.
-  Dispatches via curveRcore’s `tidy_samples()` / `tidy_grid()` so the
-  adapter never reaches into object internals. Also accepts a plain data
-  frame for the legacy / foreign-data path.
+  Dispatches via curveRcore’s
+  [`tidy_samples()`](https://immunoplex.github.io/curveRcore/reference/tidy_samples.html)
+  /
+  [`tidy_grid()`](https://immunoplex.github.io/curveRcore/reference/tidy_grid.html)
+  so the adapter never reaches into object internals. Also accepts a
+  plain data frame for the legacy / foreign-data path.
 - [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md)
   — curveR-ecosystem entry point. Wraps
   [`fit_saturated_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_saturated_weight.md)
@@ -92,7 +106,8 @@
   `source = "samples"` — the fitting table consumed by
   [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md).
   For `source = "grid"`, `design` is intersected with whatever columns
-  are actually present (currently none, from `tidy_grid()`) and the
-  cell/replication checks are skipped, since
+  are actually present (currently none, from
+  [`tidy_grid()`](https://immunoplex.github.io/curveRcore/reference/tidy_grid.html))
+  and the cell/replication checks are skipped, since
   [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md)
   only ever reads `se`/`concentration`/`pcov` from the profile.
