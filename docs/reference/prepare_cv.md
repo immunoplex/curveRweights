@@ -38,8 +38,11 @@ prepare_cv(
 - predictor:
 
   One of `"auto"`, `"se"`, `"pcov"`, `"se_over_conc"`. See the *Scale
-  predictor* section. Default `"auto"` reproduces the historical
-  behaviour.
+  predictor* section. Default `"auto"` (unchanged since 0.2.x: prefers
+  the capped `pcov`). `"se"` is recommended and is what the additive
+  model
+  ([`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md))
+  always uses.
 
 - response_is_log10:
 

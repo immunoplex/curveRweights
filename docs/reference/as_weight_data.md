@@ -21,6 +21,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 
@@ -33,6 +34,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 
@@ -45,6 +47,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 
@@ -57,6 +60,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 ```
@@ -119,6 +123,16 @@ as_weight_data(
   Logical: drop rows with `pcov_pass == FALSE`? Default `FALSE` (keep
   but warn) — not discarding out-of-range observations is the point of
   the package.
+
+- carry:
+
+  Character vector of extra columns to carry through from the extracted
+  table. `NULL` (default) carries those of `patientid`, `dilution`,
+  `censor_class`, `censor_type`, `censor_lower` and `censor_upper` that
+  are present; they are used by
+  [`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md)
+  for the subject random effect, the dilution scale and the censored
+  likelihood.
 
 - ...:
 

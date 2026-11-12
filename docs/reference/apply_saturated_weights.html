@@ -13,7 +13,7 @@ model."><meta property="og:image" content="https://immunoplex.github.io/curveRwe
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,7 +24,9 @@ model."><meta property="og:image" content="https://immunoplex.github.io/curveRwe
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/precision-weighting.html">Precision Weighting with curveRweights</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/measurement-error.html">Measurement error in assay data: what the weights mean</a></li>
+    <li><a class="dropdown-item" href="../articles/downstream-analysis.html">Using the weights downstream: which analysis for which question</a></li>
+    <li><a class="dropdown-item" href="../articles/precision-weighting.html">Precision Weighting with curveRweights</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -56,7 +58,8 @@ model.</p>
 <span>  group_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"antigen"</span>, <span class="st">"source"</span><span class="op">)</span>,</span>
 <span>  concentration_col <span class="op">=</span> <span class="st">"predicted_concentration"</span>,</span>
 <span>  se_col <span class="op">=</span> <span class="st">"se_concentration"</span>,</span>
-<span>  pcov_col <span class="op">=</span> <span class="st">"pcov"</span></span>
+<span>  pcov_col <span class="op">=</span> <span class="st">"pcov"</span>,</span>
+<span>  predictor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"se"</span>, <span class="st">"pcov"</span>, <span class="st">"se_over_conc"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,6 +93,11 @@ and <code>scale_table</code> for group-specific scale parameters.
 
 <dt id="arg-pcov-col">pcov_col<a class="anchor" aria-label="anchor" href="#arg-pcov-col"></a></dt>
 <dd><p>Character: posterior CV column name.</p></dd>
+
+
+<dt id="arg-predictor">predictor<a class="anchor" aria-label="anchor" href="#arg-predictor"></a></dt>
+<dd><p>Scale predictor; must match the one used to fit the
+<code>scale_table</code> (default <code>"auto"</code>, as in <code><a href="fit_saturated_weight.html">fit_saturated_weight()</a></code>).</p></dd>
 
 </dl></div>
     <div class="section level2">

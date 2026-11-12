@@ -91,16 +91,25 @@ interpret_beta1(0.56, 0.30, 0.82)
 
 In classical random-effects meta-regression, total per-observation
 variance is $`\tau^2 + v_i`$ where $`v_i`$ is measurement error and
-$`\tau^2`$ is residual heterogeneity. In curveRweights, $`\phi^2`$ plays
-the role of $`\tau^2`$ (global inflation) and $`se_i^{2\beta_1}`$ plays
-the role of $`v_i`$ (per-observation error). The key difference is that
-phi scales multiplicatively rather than adding a fixed floor, and beta1
-is data-estimated rather than fixed.
+$`\tau^2`$ is between-subject variance. The multiplicative model here
+writes $`\sigma_i^2 = \phi^2 se_i^{2\beta_1}`$: it scales the
+measurement variance but has **no additive floor**, so a very precisely
+measured sample can receive an unbounded weight.
 
-When using these weights in
-[`metafor::rma()`](https://wviechtb.github.io/metafor/reference/rma.uni.html),
-set `method = "FE"` ($`\tau^2 = 0`$) because heterogeneity is already
-captured by phi.
+> **Newer option.** curveRweights 0.3.0 adds the additive model
+> $`\sigma_i^2 = \tau^2 + \kappa^2 se_i^{2\beta_1}`$
+> (`fit_precision_weights(model = "additive")`), which bounds the weight
+> by $`1/\tau^2`$ and returns a per-sample reliability. It is explained
+> for a non-specialist audience in
+> [`vignette("measurement-error")`](https://immunoplex.github.io/curveRweights/articles/measurement-error.md);
+> the multiplicative model remains the default so earlier results are
+> reproducible.
+
+Earlier versions of this page advised `method = "FE"` in `metafor`. That
+is no longer recommended: the fixed-effect model assumes there is no
+between-sample variance beyond what the weights describe. See
+[`vignette("downstream-analysis")`](https://immunoplex.github.io/curveRweights/articles/downstream-analysis.md)
+for current recipes.
 
 ------------------------------------------------------------------------
 
@@ -370,8 +379,7 @@ summary(dat_comparison$w_saturated_norm)
 
 Everything above treats each sample as a point with a precision. Samples
 outside the quantifiable range are different, and curveRcore (which
-curveRweights imports) labels them:
-[`classify_censoring_multiplate()`](https://immunoplex.github.io/curveRcore/reference/classify_censoring_multiplate.html)
+curveRweights imports) labels them: `classify_censoring_multiplate()`
 adds `censor_class`, `censor_type` and the bounds that class implies
 (see
 [`vignette("getting-started", package = "curveRcore")`](https://immunoplex.github.io/curveRcore/articles/getting-started.html),
@@ -439,43 +447,26 @@ indicator for out-of-range samples” in a single frame.
 
 ## Downstream analysis
 
-### Weighted meta-regression with metafor
+The recommended downstream analyses (meta-regression with
+[`metafor::rma.mv()`](https://wviechtb.github.io/metafor/reference/rma.mv.html)
+using
+[`meas_variance()`](https://immunoplex.github.io/curveRweights/reference/meas_variance.md),
+censored `brms` models, regression calibration for predictors, and rank
+tests that respect censoring) are in
+[`vignette("downstream-analysis")`](https://immunoplex.github.io/curveRweights/articles/downstream-analysis.md).
+They apply to weights from either model, with the caveat that the
+`v_meas`-based recipes need the additive model.
 
-The weights can be used directly in
-[`metafor::rma()`](https://wviechtb.github.io/metafor/reference/rma.uni.html).
-Because phi already captures residual heterogeneity, use `method = "FE"`
-to avoid double-counting:
+For a quick weighted comparison with the multiplicative weights:
 
 ``` r
-library(metafor)
-
 dat_prn_t3 <- batch$data |>
   filter(antigen == "prn", group_b == "timepoint_3",
          group_a %in% c("vaccine_a", "vaccine_b"))
-
-dat_prn_t3$conc_z  <- scale(dat_prn_t3$predicted_concentration)
-dat_prn_t3$vi      <- 1 / dat_prn_t3$w_saturated
-dat_prn_t3$group_a <- factor(dat_prn_t3$group_a,
-                              levels = c("vaccine_a", "vaccine_b"))
-
-fit_rma <- rma(yi = conc_z, vi = vi, mods = ~ group_a,
-               data = dat_prn_t3, method = "FE")
-summary(fit_rma)
-```
-
-The `group_avaccine_b` coefficient is the precision-weighted difference
-in z-scored concentration between vaccine_b and vaccine_a.
-
-### Survey-weighted rank test
-
-For a nonparametric comparison that respects the precision weights:
-
-``` r
-library(survey)
-
-des <- svydesign(ids = ~1, weights = ~w_saturated, data = dat_prn_t3)
-rt  <- svyranktest(conc_z ~ group_a, design = des)
-rt
+dat_prn_t3$conc_z <- scale(dat_prn_t3$predicted_concentration)
+fit_lm <- lm(conc_z ~ group_a, data = dat_prn_t3,
+             weights = w_saturated_norm)   # subset first, then normalise
+summary(fit_lm)
 ```
 
 ------------------------------------------------------------------------
@@ -604,7 +595,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] dplyr_1.2.1         curveRweights_0.2.2
+#> [1] dplyr_1.2.1         curveRweights_0.3.0
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6          tensorA_0.36.2.1      QuickJSR_1.9.2       

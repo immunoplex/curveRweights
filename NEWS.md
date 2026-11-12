@@ -23,6 +23,17 @@
   `meas_variance()` (the variance to pass to `metafor::rma.mv(V = )`),
   `reliability_correct()` (regression calibration) and `attenuation_correct()`.
 
+## Documentation (0.3.0)
+
+* New vignette `measurement-error`: the additive model, reliability, censoring,
+  attenuation and a glossary, written for readers without a measurement-error
+  background.
+* New vignette `downstream-analysis`: recipes by question (`metafor::rma.mv` with
+  `meas_variance()`, censored `brms`, regression calibration, rank tests with
+  censoring). The `method = "FE"` and `svyranktest()` advice in
+  `precision-weighting` is replaced.
+* `AI_USE.md`: how generative AI was used in this project.
+
 ## Existing behaviour is unchanged
 
 * `fit_precision_weights()` gains `model = c("multiplicative", "additive")`,

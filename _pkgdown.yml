@@ -32,6 +32,14 @@ navbar:
       href: https://github.com/immunoplex/curveRweights
       aria-label: GitHub
 
+articles:
+- title: Guides
+  navbar: ~
+  contents:
+  - measurement-error
+  - downstream-analysis
+  - precision-weighting
+
 reference:
 - title: curveR Ecosystem Entry Points
   desc: >
@@ -45,6 +53,27 @@ reference:
   - fit_precision_weights
   - predict_weights
   - join_weights
+
+- title: Additive measurement-error model
+  desc: >
+    The additive model sigma^2 = tau^2 + kappa^2 se^(2 beta1): weights are
+    bounded by 1/tau^2, each sample gets a reliability, and out-of-range
+    samples enter through a censored likelihood. See the measurement-error
+    and downstream-analysis articles.
+  contents:
+  - fit_additive_weight
+  - prepare_censoring
+  - compute_additive_weights
+  - normalize_weights
+  - meas_variance
+
+- title: Measurement-error corrections
+  desc: >
+    For analyses in which the noisy variable is a predictor: regression
+    calibration and correction of correlations for attenuation.
+  contents:
+  - reliability_correct
+  - attenuation_correct
 
 - title: Precision Index Preparation
   desc: >

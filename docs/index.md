@@ -118,6 +118,21 @@ summary(batch$data$w_saturated_norm)
 
 ------------------------------------------------------------------------
 
+## Guides
+
+- [Measurement error in assay data: what the weights
+  mean](https://immunoplex.github.io/curveRweights/articles/measurement-error.html)
+  — the additive model, reliability, censoring, glossary (no
+  measurement-error background assumed).
+- [Using the weights
+  downstream](https://immunoplex.github.io/curveRweights/articles/downstream-analysis.html)
+  — which analysis for which question.
+- Calibration side:
+  [curveRfreq](https://immunoplex.github.io/curveRfreq/) and
+  [curveRbayes](https://immunoplex.github.io/curveRbayes/).
+- [Use of generative AI in this
+  project](https://immunoplex.github.io/curveRweights/AI_USE.md).
+
 ## Core functions
 
 | Function | Purpose |

@@ -22,6 +22,36 @@ attaches weights back onto a sample data frame.
 - [`join_weights()`](https://immunoplex.github.io/curveRweights/reference/join_weights.md)
   : Join estimated weights back onto a data frame
 
+## Additive measurement-error model
+
+The additive model sigma^2 = tau^2 + kappa^2 se^(2 beta1): weights are
+bounded by 1/tau^2, each sample gets a reliability, and out-of-range
+samples enter through a censored likelihood. See the measurement-error
+and downstream-analysis articles.
+
+- [`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md)
+  : Fit the additive measurement-error model (signal + measurement
+  variance)
+- [`prepare_censoring()`](https://immunoplex.github.io/curveRweights/reference/prepare_censoring.md)
+  : Prepare censored observations for the additive weight model
+- [`compute_additive_weights()`](https://immunoplex.github.io/curveRweights/reference/compute_additive_weights.md)
+  : Compute additive-model weights, reliability and measurement variance
+- [`normalize_weights()`](https://immunoplex.github.io/curveRweights/reference/normalize_weights.md)
+  : Normalize weights to mean 1 within an analysis subset
+- [`meas_variance()`](https://immunoplex.github.io/curveRweights/reference/meas_variance.md)
+  : Measurement variance of each observation
+
+## Measurement-error corrections
+
+For analyses in which the noisy variable is a predictor: regression
+calibration and correction of correlations for attenuation.
+
+- [`reliability_correct()`](https://immunoplex.github.io/curveRweights/reference/reliability_correct.md)
+  : Regression calibration: shrink measured values toward their cell
+  mean
+- [`attenuation_correct()`](https://immunoplex.github.io/curveRweights/reference/attenuation_correct.md)
+  : Correct a correlation for attenuation by measurement error
+
 ## Precision Index Preparation
 
 Functions that compute and diagnose the precision index used as the
