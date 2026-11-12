@@ -66,8 +66,9 @@ fit_saturated_weight(
 
   Scale predictor, passed to
   [`prepare_cv()`](https://immunoplex.github.io/curveRweights/reference/prepare_cv.md).
-  One of `"auto"` (default; legacy behaviour), `"se"` (recommended for
-  curveR ecosystem input), `"pcov"`, `"se_over_conc"`.
+  One of `"auto"` (default; legacy behaviour, prefers the capped pcov),
+  `"se"` (recommended for curveR ecosystem input), `"pcov"`,
+  `"se_over_conc"`.
 
 - response_is_log10:
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,9 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/precision-weighting.html">Precision Weighting with curveRweights</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/measurement-error.html">Measurement error in assay data: what the weights mean</a></li>
+    <li><a class="dropdown-item" href="../articles/downstream-analysis.html">Using the weights downstream: which analysis for which question</a></li>
+    <li><a class="dropdown-item" href="../articles/precision-weighting.html">Precision Weighting with curveRweights</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -70,6 +72,73 @@
 
         </dt>
         <dd>Join estimated weights back onto a data frame</dd>
+      </dl></div><div class="section level2">
+      <h2 id="additive-measurement-error-model">Additive measurement-error model<a class="anchor" aria-label="anchor" href="#additive-measurement-error-model"></a></h2>
+
+      <div class="section-desc"><p>The additive model sigma^2 = tau^2 + kappa^2 se^(2 beta1): weights are bounded by 1/tau^2, each sample gets a reliability, and out-of-range samples enter through a censored likelihood. See the measurement-error and downstream-analysis articles.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fit_additive_weight.html">fit_additive_weight()</a></code>
+
+        </dt>
+        <dd>Fit the additive measurement-error model (signal + measurement variance)</dd>
+
+        <dt>
+
+          <code><a href="prepare_censoring.html">prepare_censoring()</a></code>
+
+        </dt>
+        <dd>Prepare censored observations for the additive weight model</dd>
+
+        <dt>
+
+          <code><a href="compute_additive_weights.html">compute_additive_weights()</a></code>
+
+        </dt>
+        <dd>Compute additive-model weights, reliability and measurement variance</dd>
+
+        <dt>
+
+          <code><a href="normalize_weights.html">normalize_weights()</a></code>
+
+        </dt>
+        <dd>Normalize weights to mean 1 within an analysis subset</dd>
+
+        <dt>
+
+          <code><a href="meas_variance.html">meas_variance()</a></code>
+
+        </dt>
+        <dd>Measurement variance of each observation</dd>
+      </dl></div><div class="section level2">
+      <h2 id="measurement-error-corrections">Measurement-error corrections<a class="anchor" aria-label="anchor" href="#measurement-error-corrections"></a></h2>
+
+      <div class="section-desc"><p>For analyses in which the noisy variable is a predictor: regression calibration and correction of correlations for attenuation.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="reliability_correct.html">reliability_correct()</a></code>
+
+        </dt>
+        <dd>Regression calibration: shrink measured values toward their cell mean</dd>
+
+        <dt>
+
+          <code><a href="attenuation_correct.html">attenuation_correct()</a></code>
+
+        </dt>
+        <dd>Correct a correlation for attenuation by measurement error</dd>
       </dl></div><div class="section level2">
       <h2 id="precision-index-preparation">Precision Index Preparation<a class="anchor" aria-label="anchor" href="#precision-index-preparation"></a></h2>
 

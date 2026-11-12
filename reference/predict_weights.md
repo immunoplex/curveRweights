@@ -1,9 +1,10 @@
 # Apply fitted precision weights to new observations
 
-Uses the estimated `phi` and `beta1` from a `precision_weights` fit to
-compute \\\sigma = \phi\\ s^{\beta_1}\\ and \\w = 1/\sigma^2\\ for new
-observations — typically a precision grid (to draw a continuous weight
-profile) or held-out samples — without refitting.
+Uses the estimates from a `precision_weights` fit (additive: \\\tau^2\\,
+\\\kappa\\, \\\beta_1\\; multiplicative: `phi`, `beta1`) to compute the
+variance, the weight \\w = 1/\sigma^2\\ and, for the additive model, the
+reliability for new observations — typically a precision grid (to draw a
+continuous weight profile) or held-out samples — without refitting.
 
 ## Usage
 

@@ -16,7 +16,8 @@ apply_saturated_weights(
   group_vars = c("antigen", "source"),
   concentration_col = "predicted_concentration",
   se_col = "se_concentration",
-  pcov_col = "pcov"
+  pcov_col = "pcov",
+  predictor = c("auto", "se", "pcov", "se_over_conc")
 )
 ```
 
@@ -50,6 +51,12 @@ apply_saturated_weights(
 - pcov_col:
 
   Character: posterior CV column name.
+
+- predictor:
+
+  Scale predictor; must match the one used to fit the `scale_table`
+  (default `"auto"`, as in
+  [`fit_saturated_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_saturated_weight.md)).
 
 ## Value
 

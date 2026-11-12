@@ -2,8 +2,10 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  downstream-analysis: downstream-analysis.html
+  measurement-error: measurement-error.html
   precision-weighting: precision-weighting.html
-last_built: 2026-10-13T02:01Z
+last_built: 2026-11-12T23:13Z
 urls:
   reference: https://immunoplex.github.io/curveRweights/reference
   article: https://immunoplex.github.io/curveRweights/articles

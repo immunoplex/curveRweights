@@ -11,7 +11,7 @@ transform (log_cv)."><meta property="og:image" content="https://immunoplex.githu
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,7 +22,9 @@ transform (log_cv)."><meta property="og:image" content="https://immunoplex.githu
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/precision-weighting.html">Precision Weighting with curveRweights</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/measurement-error.html">Measurement error in assay data: what the weights mean</a></li>
+    <li><a class="dropdown-item" href="../articles/downstream-analysis.html">Using the weights downstream: which analysis for which question</a></li>
+    <li><a class="dropdown-item" href="../articles/precision-weighting.html">Precision Weighting with curveRweights</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -81,7 +83,9 @@ transform (<code>log_cv</code>).</p>
 <dt id="arg-predictor">predictor<a class="anchor" aria-label="anchor" href="#arg-predictor"></a></dt>
 <dd><p>One of <code>"auto"</code>, <code>"se"</code>, <code>"pcov"</code>,
 <code>"se_over_conc"</code>. See the <em>Scale predictor</em> section. Default
-<code>"auto"</code> reproduces the historical behaviour.</p></dd>
+<code>"auto"</code> (unchanged since 0.2.x: prefers the capped <code>pcov</code>).
+<code>"se"</code> is recommended and is what the additive model
+(<code><a href="fit_additive_weight.html">fit_additive_weight()</a></code>) always uses.</p></dd>
 
 
 <dt id="arg-response-is-log-">response_is_log10<a class="anchor" aria-label="anchor" href="#arg-response-is-log-"></a></dt>

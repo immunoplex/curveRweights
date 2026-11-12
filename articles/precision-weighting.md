@@ -91,16 +91,25 @@ interpret_beta1(0.56, 0.30, 0.82)
 
 In classical random-effects meta-regression, total per-observation
 variance is $`\tau^2 + v_i`$ where $`v_i`$ is measurement error and
-$`\tau^2`$ is residual heterogeneity. In curveRweights, $`\phi^2`$ plays
-the role of $`\tau^2`$ (global inflation) and $`se_i^{2\beta_1}`$ plays
-the role of $`v_i`$ (per-observation error). The key difference is that
-phi scales multiplicatively rather than adding a fixed floor, and beta1
-is data-estimated rather than fixed.
+$`\tau^2`$ is between-subject variance. The multiplicative model here
+writes $`\sigma_i^2 = \phi^2 se_i^{2\beta_1}`$: it scales the
+measurement variance but has **no additive floor**, so a very precisely
+measured sample can receive an unbounded weight.
 
-When using these weights in
-[`metafor::rma()`](https://wviechtb.github.io/metafor/reference/rma.uni.html),
-set `method = "FE"` ($`\tau^2 = 0`$) because heterogeneity is already
-captured by phi.
+> **Newer option.** curveRweights 0.3.0 adds the additive model
+> $`\sigma_i^2 = \tau^2 + \kappa^2 se_i^{2\beta_1}`$
+> (`fit_precision_weights(model = "additive")`), which bounds the weight
+> by $`1/\tau^2`$ and returns a per-sample reliability. It is explained
+> for a non-specialist audience in
+> [`vignette("measurement-error")`](https://immunoplex.github.io/curveRweights/articles/measurement-error.md);
+> the multiplicative model remains the default so earlier results are
+> reproducible.
+
+Earlier versions of this page advised `method = "FE"` in `metafor`. That
+is no longer recommended: the fixed-effect model assumes there is no
+between-sample variance beyond what the weights describe. See
+[`vignette("downstream-analysis")`](https://immunoplex.github.io/curveRweights/articles/downstream-analysis.md)
+for current recipes.
 
 ------------------------------------------------------------------------
 
@@ -452,45 +461,27 @@ indicator for out-of-range samples” in a single frame.
 
 ## Downstream analysis
 
-### Weighted meta-regression with metafor
+The recommended downstream analyses (meta-regression with
+[`metafor::rma.mv()`](https://wviechtb.github.io/metafor/reference/rma.mv.html)
+using
+[`meas_variance()`](https://immunoplex.github.io/curveRweights/reference/meas_variance.md),
+censored `brms` models, regression calibration for predictors, and rank
+tests that respect censoring) are in
+[`vignette("downstream-analysis")`](https://immunoplex.github.io/curveRweights/articles/downstream-analysis.md).
+They apply to weights from either model, with the caveat that the
+`v_meas`-based recipes need the additive model.
 
-The weights can be used directly in
-[`metafor::rma()`](https://wviechtb.github.io/metafor/reference/rma.uni.html).
-Because phi already captures residual heterogeneity, use `method = "FE"`
-to avoid double-counting:
+For a quick weighted comparison with the multiplicative weights:
 
 ``` r
-
-library(metafor)
 
 dat_prn_t3 <- batch$data |>
   filter(antigen == "prn", group_b == "timepoint_3",
          group_a %in% c("vaccine_a", "vaccine_b"))
-
-dat_prn_t3$conc_z  <- scale(dat_prn_t3$predicted_concentration)
-dat_prn_t3$vi      <- 1 / dat_prn_t3$w_saturated
-dat_prn_t3$group_a <- factor(dat_prn_t3$group_a,
-                              levels = c("vaccine_a", "vaccine_b"))
-
-fit_rma <- rma(yi = conc_z, vi = vi, mods = ~ group_a,
-               data = dat_prn_t3, method = "FE")
-summary(fit_rma)
-```
-
-The `group_avaccine_b` coefficient is the precision-weighted difference
-in z-scored concentration between vaccine_b and vaccine_a.
-
-### Survey-weighted rank test
-
-For a nonparametric comparison that respects the precision weights:
-
-``` r
-
-library(survey)
-
-des <- svydesign(ids = ~1, weights = ~w_saturated, data = dat_prn_t3)
-rt  <- svyranktest(conc_z ~ group_a, design = des)
-rt
+dat_prn_t3$conc_z <- scale(dat_prn_t3$predicted_concentration)
+fit_lm <- lm(conc_z ~ group_a, data = dat_prn_t3,
+             weights = w_saturated_norm)   # subset first, then normalise
+summary(fit_lm)
 ```
 
 ------------------------------------------------------------------------
@@ -602,7 +593,7 @@ reflect the data; the narrower prior gives more conservative
 ``` r
 
 sessionInfo()
-#> R version 4.6.1 (2026-06-24)
+#> R version 4.6.2 (2026-10-29)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 24.04.5 LTS
 #> 
@@ -623,31 +614,31 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] dplyr_1.2.1         curveRweights_0.2.2
+#> [1] dplyr_1.2.1         curveRweights_0.3.0
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] tensorA_0.36.2.1     bridgesampling_1.2-1 sass_0.4.10         
-#>  [4] generics_0.1.4       stringi_1.8.9        lattice_0.22-9      
+#>  [4] generics_0.1.4       stringi_1.8.9        lattice_0.23-1      
 #>  [7] digest_0.6.39        magrittr_2.0.5       evaluate_1.0.5      
-#> [10] grid_4.6.1           RColorBrewer_1.1-3   mvtnorm_1.4-2       
-#> [13] fastmap_1.2.0        jsonlite_2.0.0       Matrix_1.7-5        
+#> [10] grid_4.6.2           RColorBrewer_1.1-3   mvtnorm_1.4-2       
+#> [13] fastmap_1.2.0        jsonlite_2.0.0       Matrix_1.7-6        
 #> [16] pkgbuild_1.4.8       backports_1.5.1      gridExtra_2.3.1     
 #> [19] Brobdingnag_1.3-1    brms_2.23.0          QuickJSR_1.11.0     
 #> [22] scales_1.4.0         codetools_0.2-20     textshaping_1.0.5   
 #> [25] jquerylib_0.1.4      abind_1.4-8          cli_3.6.6           
 #> [28] rlang_1.3.0          cachem_1.1.0         yaml_2.3.12         
-#> [31] otel_0.2.0           StanHeaders_2.39.1   inline_0.3.21       
-#> [34] rstan_2.32.7         tools_4.6.1          parallel_4.6.1      
+#> [31] otel_0.3.0           StanHeaders_2.39.1.1 inline_0.3.21       
+#> [34] rstan_2.32.7         tools_4.6.2          parallel_4.6.2      
 #> [37] rstantools_2.7.1     checkmate_2.3.4      coda_0.19-4.1       
 #> [40] ggplot2_4.0.3        posterior_1.7.0      vctrs_0.7.3         
-#> [43] R6_2.6.1             stats4_4.6.1         matrixStats_1.5.0   
+#> [43] R6_2.6.1             stats4_4.6.2         matrixStats_1.5.0   
 #> [46] lifecycle_1.0.5      stringr_1.6.0        fs_2.1.0            
 #> [49] ragg_1.5.2           pkgconfig_2.0.3      desc_1.4.3          
 #> [52] RcppParallel_6.2.1   pkgdown_2.2.1        pillar_1.11.1       
 #> [55] bslib_0.12.0         gtable_0.3.6         loo_2.10.1          
 #> [58] glue_1.8.1           Rcpp_1.1.2           systemfonts_1.3.2   
-#> [61] xfun_0.61            tibble_3.3.1         tidyselect_1.2.1    
+#> [61] xfun_0.62            tibble_3.3.1         tidyselect_1.2.1    
 #> [64] knitr_1.52           farver_2.1.2         bayesplot_1.16.0    
-#> [67] htmltools_0.5.9      nlme_3.1-169         rmarkdown_2.32      
-#> [70] compiler_4.6.1       S7_0.2.2             distributional_0.9.0
+#> [67] htmltools_0.5.9      nlme_3.1-171         rmarkdown_2.32      
+#> [70] compiler_4.6.2       S7_0.2.2             distributional_0.9.0
 ```

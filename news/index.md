@@ -1,5 +1,82 @@
 # Changelog
 
+## curveRweights 0.3.0
+
+### Additive measurement-error model (new, opt-in)
+
+- [`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md)
+  fits a model in which each observation’s variance is the *sum* of true
+  between-subject variance and measurement variance, sigma^2 = tau^2 +
+  kappa^2 \* se^(2 \* beta1). The weight 1/sigma^2 can never exceed
+  1/tau^2, so a very precisely measured sample can no longer dominate
+  (the multiplicative model of 0.2.x attributes all variance to the
+  measurement). beta1 is fixed at 1 by default (`fix_beta1 = TRUE`)
+  because tau and kappa are separated only through the spread of `se`; a
+  message reports when kappa is weakly identified.
+- Samples outside the quantifiable range enter through a censored
+  likelihood (left, right or interval) instead of being treated as exact
+  points or weighted:
+  [`prepare_censoring()`](https://immunoplex.github.io/curveRweights/reference/prepare_censoring.md)
+  builds the censoring flags and the measurement SE at the limit from
+  curveRcore’s `censor_type` / `censor_lower` / `censor_upper`. A
+  `(1 | patient)` term absorbs repeated measures of one subject;
+  optional `sample_col` handles dilutions or replicates of one sample;
+  optional `dilution_col` puts the response on the same
+  (final-concentration) scale as curveRcore’s bounds.
+- [`compute_additive_weights()`](https://immunoplex.github.io/curveRweights/reference/compute_additive_weights.md)
+  returns the weight table a downstream analysis needs: `v_meas`,
+  `tau2`, `sigma_total`, `w`, `reliability` (tau^2 / (tau^2 + v), with a
+  posterior interval), `w_norm` (mean 1 over quantified rows),
+  `censor_type`, `bound`.
+- New helpers:
+  [`normalize_weights()`](https://immunoplex.github.io/curveRweights/reference/normalize_weights.md)
+  (re-normalize to mean 1 within an analysis subset),
+  [`meas_variance()`](https://immunoplex.github.io/curveRweights/reference/meas_variance.md)
+  (the variance to pass to `metafor::rma.mv(V = )`),
+  [`reliability_correct()`](https://immunoplex.github.io/curveRweights/reference/reliability_correct.md)
+  (regression calibration) and
+  [`attenuation_correct()`](https://immunoplex.github.io/curveRweights/reference/attenuation_correct.md).
+
+### Documentation (0.3.0)
+
+- New vignette `measurement-error`: the additive model, reliability,
+  censoring, attenuation and a glossary, written for readers without a
+  measurement-error background.
+- New vignette `downstream-analysis`: recipes by question
+  ([`metafor::rma.mv`](https://wviechtb.github.io/metafor/reference/rma.mv.html)
+  with
+  [`meas_variance()`](https://immunoplex.github.io/curveRweights/reference/meas_variance.md),
+  censored `brms`, regression calibration, rank tests with censoring).
+  The `method = "FE"` and `svyranktest()` advice in
+  `precision-weighting` is replaced.
+- `AI_USE.md`: how generative AI was used in this project.
+
+### Existing behaviour is unchanged
+
+- [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md)
+  gains `model = c("multiplicative", "additive")`, `patient_col` and
+  `use_censoring`. The default stays `"multiplicative"`, so existing
+  callers (including the i-spi-compute worker) get exactly the 0.2.x
+  result and shape. The `precision_weights` object now records
+  `$estimates$model`.
+- The defaults of
+  [`prepare_cv()`](https://immunoplex.github.io/curveRweights/reference/prepare_cv.md),
+  [`fit_saturated_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_saturated_weight.md)
+  and
+  [`apply_saturated_weights()`](https://immunoplex.github.io/curveRweights/reference/apply_saturated_weights.md)
+  (`predictor = "auto"`) are unchanged;
+  [`apply_saturated_weights()`](https://immunoplex.github.io/curveRweights/reference/apply_saturated_weights.md)
+  gains a `predictor` argument.
+  [`predict_weights()`](https://immunoplex.github.io/curveRweights/reference/predict_weights.md)
+  and
+  [`join_weights()`](https://immunoplex.github.io/curveRweights/reference/join_weights.md)
+  understand both models.
+- [`as_weight_data()`](https://immunoplex.github.io/curveRweights/reference/as_weight_data.md)
+  gains `carry` and now carries `patientid`, `dilution` and the
+  censoring columns through when present.
+- `test-backward-compat.R` pins these defaults and the result shape the
+  worker reads.
+
 ## curveRweights 0.2.2
 
 - [`vignette("precision-weighting")`](https://immunoplex.github.io/curveRweights/articles/precision-weighting.md)
