@@ -24,9 +24,10 @@ A data frame with the predictor, \code{sigma}, \code{w}, and
 \code{w_norm} columns added.
 }
 \description{
-Uses the estimated \code{phi} and \code{beta1} from a
-\code{precision_weights} fit to compute \eqn{\sigma = \phi\, s^{\beta_1}} and
-\eqn{w = 1/\sigma^2} for new observations --- typically a precision grid (to
+Uses the estimates from a \code{precision_weights} fit (additive: \eqn{\tau^2},
+\eqn{\kappa}, \eqn{\beta_1}; multiplicative: \code{phi}, \code{beta1}) to
+compute the variance, the weight \eqn{w = 1/\sigma^2} and, for the additive
+model, the reliability for new observations --- typically a precision grid (to
 draw a continuous weight profile) or held-out samples --- without refitting.
 }
 \seealso{

@@ -10,7 +10,8 @@ apply_saturated_weights(
   group_vars = c("antigen", "source"),
   concentration_col = "predicted_concentration",
   se_col = "se_concentration",
-  pcov_col = "pcov"
+  pcov_col = "pcov",
+  predictor = c("auto", "se", "pcov", "se_over_conc")
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ and \code{scale_table} for group-specific scale parameters.
 \item{se_col}{Character: SE of concentration column name.}
 
 \item{pcov_col}{Character: posterior CV column name.}
+
+\item{predictor}{Scale predictor; must match the one used to fit the
+\code{scale_table} (default \code{"auto"}, as in \code{\link[=fit_saturated_weight]{fit_saturated_weight()}}).}
 }
 \value{
 The input data frame with added columns: \code{yi}, \code{cv_i}, \code{log_cv},

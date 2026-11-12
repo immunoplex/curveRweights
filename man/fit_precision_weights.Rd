@@ -9,6 +9,9 @@ fit_precision_weights(
   design = NULL,
   scale_predictor = c("se", "pcov"),
   plate_col = NULL,
+  patient_col = NULL,
+  model = c("multiplicative", "additive"),
+  use_censoring = TRUE,
   ...
 )
 }
@@ -21,32 +24,64 @@ fit_precision_weights(
 \item{design}{Character vector of design-group columns (required unless
 \code{data} is already a \code{weight_data}).}
 
-\item{scale_predictor}{\code{"se"} (default; uncapped log10-scale SD) or
-\code{"pcov"} (legacy, lossy because of the cap).}
+\item{scale_predictor}{Multiplicative model only: \code{"se"} (default;
+uncapped log10-scale SD) or \code{"pcov"} (legacy, lossy because of the
+cap). The additive model always uses \code{se}.}
 
 \item{plate_col}{Plate grouping column for the location random intercept.
 Defaults to \code{"curve_id"} when present, else \code{NULL}.}
 
-\item{...}{MCMC controls and priors passed to \code{\link[=fit_saturated_weight]{fit_saturated_weight()}}
-(e.g. \code{iter}, \code{warmup}, \code{chains}, \code{cores},
-\code{adapt_delta}, \code{seed}).}
+\item{patient_col}{Subject column for the subject random intercept (additive
+model). Defaults to \code{"patientid"} when present, else \code{NULL}.}
+
+\item{model}{\code{"multiplicative"} (default, 0.2.x behaviour) or
+\code{"additive"} (recommended; see Description).}
+
+\item{use_censoring}{Additive model: use the censoring columns
+(\code{censor_type}, \code{censor_lower}, \code{censor_upper}) when the
+data carry them. Default \code{TRUE}. If \code{dilution} is also present
+the response is placed on the final-concentration scale, which is the scale
+of curveRcore's bounds.}
+
+\item{...}{MCMC controls and priors passed to \code{\link[=fit_additive_weight]{fit_additive_weight()}} or
+\code{\link[=fit_saturated_weight]{fit_saturated_weight()}} (e.g. \code{iter}, \code{warmup}, \code{chains},
+\code{cores}, \code{adapt_delta}, \code{seed}; \code{fix_beta1} for the
+additive model).}
 }
 \value{
-A \code{precision_weights} object: a list with \code{$estimates}
-(phi, beta1, CIs, interpretation, diagnostics), \code{$weights} (data frame
-keyed by \code{obs_id}/\code{sampleid}/\code{curve_id} with \code{se},
-\code{pcov}, \code{sigma}, \code{w}, \code{w_norm}), \code{$design},
-\code{$scale} (conc_scale + scale_predictor), and \code{$fit} (the brms
-fit).
+A \code{precision_weights} object: a list with \code{$estimates},
+\code{$weights}, \code{$design}, \code{$scale}, and \code{$fit}.
+
+For the additive model \code{$estimates} holds \code{tau}, \code{tau2},
+\code{kappa}, \code{beta1}, their intervals, the overall
+\code{reliability}, and diagnostics; \code{$weights} (keyed by
+\code{obs_id}/\code{sampleid}/\code{curve_id}) has \code{se}, \code{pcov},
+\code{v_meas}, \code{tau2}, \code{sigma} (total), \code{w},
+\code{reliability}, \code{reliability_lo/hi}, \code{w_norm},
+\code{censor_type} and \code{bound}. See \code{\link[=compute_additive_weights]{compute_additive_weights()}} for
+what each column is for. For the multiplicative model \code{$estimates}
+holds \code{phi}, \code{beta1} and \code{$weights} has \code{se},
+\code{pcov}, \code{sigma}, \code{w}, \code{w_norm}.
 }
 \description{
-The curveR-ecosystem entry point. Estimates the power-law relationship
-between calibration-curve precision and residual variance,
-\eqn{\sigma_i = \phi\, se_i^{\beta_1}}, \eqn{w_i = 1/\sigma_i^2}, using a
-joint Bayesian location-scale model with a saturated cell-means location
-(see \code{\link[=fit_saturated_weight]{fit_saturated_weight()}}). The default scale predictor is the uncapped
-\code{se_concentration} from the calibration curve, so \eqn{\phi = 1} means
-"se_concentration is a calibrated residual SD".
+The curveR-ecosystem entry point. Two models are available.
+}
+\details{
+\code{model = "multiplicative"} (the default, unchanged from 0.2.x so that
+existing callers such as the i-spi-compute worker keep working) fits
+\eqn{\sigma_i = \phi\, se_i^{\beta_1}} (\code{\link[=fit_saturated_weight]{fit_saturated_weight()}}). It
+attributes \emph{all} variance to the measurement, so very precisely measured
+samples can receive extreme weights.
+
+\code{model = "additive"} (recommended for new analyses) fits the
+measurement-error model of \code{\link[=fit_additive_weight]{fit_additive_weight()}}:
+\eqn{\sigma_i^2 = \tau^2 + \kappa^2 se_i^{2\beta_1}}, which separates true
+between-subject variance (\eqn{\tau^2}) from measurement error and yields
+weights \eqn{w_i = 1/\sigma_i^2} that are bounded above by \eqn{1/\tau^2}, a
+per-observation \code{reliability}, and a censored likelihood for samples
+outside the quantifiable range. The additive result has a different
+\code{$estimates} shape (\code{tau}, \code{kappa}, \code{reliability} instead
+of \code{phi}); callers must opt in knowingly.
 }
 \examples{
 \dontshow{if (requireNamespace("curveRfreq", quietly = TRUE) && requireNamespace("brms", quietly = TRUE)) withAutoprint(\{ # examplesIf}
@@ -55,11 +90,11 @@ joint Bayesian location-scale model with a saturated cell-means location
 #         standards = std, samples = samples_with_design, ...)
 # wd <- as_weight_data(mp, design = c("timeperiod", "cohort_arm"))
 # pw <- fit_precision_weights(wd, iter = 1000, warmup = 500, chains = 2)
-# pw$estimates$phi; pw$estimates$beta1
+# pw$estimates$tau2; pw$estimates$reliability
 }
 \dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=as_weight_data]{as_weight_data()}}, \code{\link[=predict_weights]{predict_weights()}}, \code{\link[=join_weights]{join_weights()}},
-\code{\link[=fit_saturated_weight]{fit_saturated_weight()}}
+\code{\link[=fit_additive_weight]{fit_additive_weight()}}, \code{\link[=fit_saturated_weight]{fit_saturated_weight()}}
 }

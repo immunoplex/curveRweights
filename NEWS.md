@@ -1,3 +1,41 @@
+# curveRweights 0.3.0
+
+## Additive measurement-error model (new, opt-in)
+
+* `fit_additive_weight()` fits a model in which each observation's variance is the
+  *sum* of true between-subject variance and measurement variance,
+  sigma^2 = tau^2 + kappa^2 * se^(2 * beta1). The weight 1/sigma^2 can never exceed
+  1/tau^2, so a very precisely measured sample can no longer dominate (the
+  multiplicative model of 0.2.x attributes all variance to the measurement). beta1 is
+  fixed at 1 by default (`fix_beta1 = TRUE`) because tau and kappa are separated only
+  through the spread of `se`; a message reports when kappa is weakly identified.
+* Samples outside the quantifiable range enter through a censored likelihood
+  (left, right or interval) instead of being treated as exact points or weighted:
+  `prepare_censoring()` builds the censoring flags and the measurement SE at the limit
+  from curveRcore's `censor_type` / `censor_lower` / `censor_upper`. A
+  `(1 | patient)` term absorbs repeated measures of one subject; optional
+  `sample_col` handles dilutions or replicates of one sample; optional `dilution_col`
+  puts the response on the same (final-concentration) scale as curveRcore's bounds.
+* `compute_additive_weights()` returns the weight table a downstream analysis needs:
+  `v_meas`, `tau2`, `sigma_total`, `w`, `reliability` (tau^2 / (tau^2 + v), with a
+  posterior interval), `w_norm` (mean 1 over quantified rows), `censor_type`, `bound`.
+* New helpers: `normalize_weights()` (re-normalize to mean 1 within an analysis subset),
+  `meas_variance()` (the variance to pass to `metafor::rma.mv(V = )`),
+  `reliability_correct()` (regression calibration) and `attenuation_correct()`.
+
+## Existing behaviour is unchanged
+
+* `fit_precision_weights()` gains `model = c("multiplicative", "additive")`,
+  `patient_col` and `use_censoring`. The default stays `"multiplicative"`, so existing
+  callers (including the i-spi-compute worker) get exactly the 0.2.x result and shape.
+  The `precision_weights` object now records `$estimates$model`.
+* The defaults of `prepare_cv()`, `fit_saturated_weight()` and `apply_saturated_weights()`
+  (`predictor = "auto"`) are unchanged; `apply_saturated_weights()` gains a `predictor`
+  argument. `predict_weights()` and `join_weights()` understand both models.
+* `as_weight_data()` gains `carry` and now carries `patientid`, `dilution` and the
+  censoring columns through when present.
+* `test-backward-compat.R` pins these defaults and the result shape the worker reads.
+
 # curveRweights 0.2.2
 
 * `vignette("precision-weighting")` gains a "Weights and censored samples"

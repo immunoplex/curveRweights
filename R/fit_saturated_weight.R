@@ -24,8 +24,9 @@
 #' @param plate_col Character: plate column name for random intercept.
 #'   \code{NULL} = no plate random effect.
 #' @param predictor Scale predictor, passed to [prepare_cv()]. One of
-#'   \code{"auto"} (default; legacy behaviour), \code{"se"} (recommended for
-#'   curveR ecosystem input), \code{"pcov"}, \code{"se_over_conc"}.
+#'   \code{"auto"} (default; legacy behaviour, prefers the capped pcov),
+#'   \code{"se"} (recommended for curveR ecosystem input), \code{"pcov"},
+#'   \code{"se_over_conc"}.
 #' @param response_is_log10 Logical, passed to [prepare_cv()]: is
 #'   \code{concentration_col} already on the log10 scale (as in a curveR
 #'   \code{calibration_result})? Default \code{FALSE}.

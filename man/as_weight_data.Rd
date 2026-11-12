@@ -15,6 +15,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 
@@ -26,6 +27,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 
@@ -37,6 +39,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 
@@ -48,6 +51,7 @@ as_weight_data(
   include_plate = TRUE,
   plate_in_cell = FALSE,
   drop_oor = FALSE,
+  carry = NULL,
   ...
 )
 }
@@ -91,6 +95,13 @@ to be absorbed by \code{phi} / the plate random effect (see the plan, §5).}
 \item{drop_oor}{Logical: drop rows with \code{pcov_pass == FALSE}? Default
 \code{FALSE} (keep but warn) --- not discarding out-of-range observations
 is the point of the package.}
+
+\item{carry}{Character vector of extra columns to carry through from the
+extracted table. \code{NULL} (default) carries those of \code{patientid},
+\code{dilution}, \code{censor_class}, \code{censor_type},
+\code{censor_lower} and \code{censor_upper} that are present; they are used
+by \code{\link[=fit_additive_weight]{fit_additive_weight()}} for the subject random effect, the dilution
+scale and the censored likelihood.}
 
 \item{...}{Passed to methods.}
 }

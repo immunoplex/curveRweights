@@ -14,10 +14,14 @@ join_weights(samples_df, object, by = "sampleid")
 \item{by}{Join key column name(s). Default \code{"sampleid"}.}
 }
 \value{
-\code{samples_df} with \code{w}, \code{w_norm}, \code{sigma} added.
+\code{samples_df} with the weight columns added. If you subset the
+result to an analysis group, re-normalize with \code{\link[=normalize_weights]{normalize_weights()}} before
+using \code{w_norm} as a case weight.
 }
 \description{
-Left-joins the \code{w}, \code{w_norm}, and \code{sigma} columns from a
+Left-joins the weight columns (\code{w}, \code{w_norm}, \code{sigma} and, for
+the additive model, \code{v_meas}, \code{tau2}, \code{reliability} and its
+interval, \code{censor_type}, \code{bound}) from a
 \code{precision_weights} fit onto a user data frame (e.g. the original
 \code{$samples}) by a key.
 }

@@ -1,8 +1,9 @@
 #' Apply fitted precision weights to new observations
 #'
-#' Uses the estimated \code{phi} and \code{beta1} from a
-#' \code{precision_weights} fit to compute \eqn{\sigma = \phi\, s^{\beta_1}} and
-#' \eqn{w = 1/\sigma^2} for new observations --- typically a precision grid (to
+#' Uses the estimates from a \code{precision_weights} fit (additive: \eqn{\tau^2},
+#' \eqn{\kappa}, \eqn{\beta_1}; multiplicative: \code{phi}, \code{beta1}) to
+#' compute the variance, the weight \eqn{w = 1/\sigma^2} and, for the additive
+#' model, the reliability for new observations --- typically a precision grid (to
 #' draw a continuous weight profile) or held-out samples --- without refitting.
 #'
 #' @param object A \code{precision_weights} object from
@@ -21,6 +22,7 @@
 #' @export
 predict_weights <- function(object, newdata = NULL, ...) {
   stopifnot(inherits(object, "precision_weights"))
+  additive <- identical(object$estimates$model, "additive")
   gamma_0 <- object$estimates$gamma_0
   gamma_1 <- object$estimates$gamma_1
   predictor <- object$scale$scale_predictor
@@ -46,6 +48,13 @@ predict_weights <- function(object, newdata = NULL, ...) {
                   pcov_col          = if ("pcov" %in% names(nd)) "pcov" else NULL,
                   predictor         = predictor,
                   response_is_log10 = resp_log10)
+  if (additive) {
+    e <- object$estimates
+    d <- compute_additive_weights(d, tau2 = e$tau2, kappa = e$kappa,
+                                  beta1 = e$beta1, se_col = "cv_i")
+    d$sigma <- d$sigma_total
+    return(d)
+  }
   d <- compute_saturated_weights(d, gamma_0 = gamma_0, gamma_1 = gamma_1)
   d$sigma  <- d$sigma_i
   d$w      <- d$w_saturated
@@ -56,14 +65,18 @@ predict_weights <- function(object, newdata = NULL, ...) {
 
 #' Join estimated weights back onto a data frame
 #'
-#' Left-joins the \code{w}, \code{w_norm}, and \code{sigma} columns from a
+#' Left-joins the weight columns (\code{w}, \code{w_norm}, \code{sigma} and, for
+#' the additive model, \code{v_meas}, \code{tau2}, \code{reliability} and its
+#' interval, \code{censor_type}, \code{bound}) from a
 #' \code{precision_weights} fit onto a user data frame (e.g. the original
 #' \code{$samples}) by a key.
 #'
 #' @param samples_df Data frame to receive the weights.
 #' @param object A \code{precision_weights} object.
 #' @param by Join key column name(s). Default \code{"sampleid"}.
-#' @return \code{samples_df} with \code{w}, \code{w_norm}, \code{sigma} added.
+#' @return \code{samples_df} with the weight columns added. If you subset the
+#'   result to an analysis group, re-normalize with [normalize_weights()] before
+#'   using \code{w_norm} as a case weight.
 #' @seealso [fit_precision_weights()]
 #' @importFrom dplyr left_join all_of select any_of
 #' @export
@@ -77,6 +90,8 @@ join_weights <- function(samples_df, object, by = "sampleid") {
          paste(setdiff(by, names(samples_df)), collapse = ", "))
   w <- dplyr::select(object$weights,
                      dplyr::all_of(by),
-                     dplyr::any_of(c("w", "w_norm", "sigma")))
+                     dplyr::any_of(c("w", "w_norm", "sigma", "v_meas", "tau2",
+                                     "reliability", "reliability_lo",
+                                     "reliability_hi", "censor_type", "bound")))
   dplyr::left_join(samples_df, w, by = by)
 }

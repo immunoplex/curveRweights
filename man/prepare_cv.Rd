@@ -25,7 +25,9 @@ prepare_cv(
 
 \item{predictor}{One of \code{"auto"}, \code{"se"}, \code{"pcov"},
 \code{"se_over_conc"}. See the \emph{Scale predictor} section. Default
-\code{"auto"} reproduces the historical behaviour.}
+\code{"auto"} (unchanged since 0.2.x: prefers the capped \code{pcov}).
+\code{"se"} is recommended and is what the additive model
+(\code{\link[=fit_additive_weight]{fit_additive_weight()}}) always uses.}
 
 \item{response_is_log10}{Logical: is \code{concentration_col} already on the
 log10 scale? Default \code{FALSE}.}

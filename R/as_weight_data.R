@@ -46,6 +46,12 @@
 #' @param drop_oor Logical: drop rows with \code{pcov_pass == FALSE}? Default
 #'   \code{FALSE} (keep but warn) --- not discarding out-of-range observations
 #'   is the point of the package.
+#' @param carry Character vector of extra columns to carry through from the
+#'   extracted table. \code{NULL} (default) carries those of \code{patientid},
+#'   \code{dilution}, \code{censor_class}, \code{censor_type},
+#'   \code{censor_lower} and \code{censor_upper} that are present; they are used
+#'   by [fit_additive_weight()] for the subject random effect, the dilution
+#'   scale and the censored likelihood.
 #' @param ... Passed to methods.
 #'
 #' @return A data frame (class \code{weight_data}) with at least: \code{obs_id},
@@ -65,7 +71,7 @@
 as_weight_data <- function(x, design, source = c("samples", "grid"),
                            conc_scale = c("log10", "natural"),
                            include_plate = TRUE, plate_in_cell = FALSE,
-                           drop_oor = FALSE, ...)
+                           drop_oor = FALSE, carry = NULL, ...)
   UseMethod("as_weight_data")
 
 #' @rdname as_weight_data
@@ -73,7 +79,8 @@ as_weight_data <- function(x, design, source = c("samples", "grid"),
 as_weight_data.calibration_result_multiplate <- function(
     x, design, source = c("samples", "grid"),
     conc_scale = c("log10", "natural"),
-    include_plate = TRUE, plate_in_cell = FALSE, drop_oor = FALSE, ...) {
+    include_plate = TRUE, plate_in_cell = FALSE, drop_oor = FALSE,
+    carry = NULL, ...) {
 
   source     <- match.arg(source)
   conc_scale <- match.arg(conc_scale)
@@ -88,7 +95,8 @@ as_weight_data.calibration_result_multiplate <- function(
                         conc_scale = conc_scale,
                         is_log_independent = is_log_indep,
                         include_plate = include_plate,
-                        plate_in_cell = plate_in_cell, drop_oor = drop_oor)
+                        plate_in_cell = plate_in_cell, drop_oor = drop_oor,
+                        carry = carry)
 }
 
 #' @rdname as_weight_data
@@ -96,7 +104,8 @@ as_weight_data.calibration_result_multiplate <- function(
 as_weight_data.calibration_result <- function(
     x, design, source = c("samples", "grid"),
     conc_scale = c("log10", "natural"),
-    include_plate = TRUE, plate_in_cell = FALSE, drop_oor = FALSE, ...) {
+    include_plate = TRUE, plate_in_cell = FALSE, drop_oor = FALSE,
+    carry = NULL, ...) {
 
   source     <- match.arg(source)
   conc_scale <- match.arg(conc_scale)
@@ -108,7 +117,8 @@ as_weight_data.calibration_result <- function(
                         conc_scale = conc_scale,
                         is_log_independent = is_log_indep,
                         include_plate = include_plate,
-                        plate_in_cell = plate_in_cell, drop_oor = drop_oor)
+                        plate_in_cell = plate_in_cell, drop_oor = drop_oor,
+                        carry = carry)
 }
 
 #' @rdname as_weight_data
@@ -116,7 +126,8 @@ as_weight_data.calibration_result <- function(
 as_weight_data.data.frame <- function(
     x, design, source = c("samples", "grid"),
     conc_scale = c("log10", "natural"),
-    include_plate = TRUE, plate_in_cell = FALSE, drop_oor = FALSE, ...) {
+    include_plate = TRUE, plate_in_cell = FALSE, drop_oor = FALSE,
+    carry = NULL, ...) {
 
   source     <- match.arg(source)
   conc_scale <- match.arg(conc_scale)
@@ -130,7 +141,8 @@ as_weight_data.data.frame <- function(
                         conc_scale = conc_scale,
                         is_log_independent = is_log_indep,
                         include_plate = include_plate,
-                        plate_in_cell = plate_in_cell, drop_oor = drop_oor)
+                        plate_in_cell = plate_in_cell, drop_oor = drop_oor,
+                        carry = carry)
 }
 
 
@@ -138,7 +150,7 @@ as_weight_data.data.frame <- function(
 
 .assemble_weight_data <- function(tidy, design, source, conc_scale,
                                   is_log_independent, include_plate,
-                                  plate_in_cell, drop_oor) {
+                                  plate_in_cell, drop_oor, carry = NULL) {
 
   if (!is.data.frame(tidy) || nrow(tidy) == 0L)
     stop("as_weight_data: no rows extracted from the calibration result ",
@@ -198,6 +210,13 @@ as_weight_data.data.frame <- function(
   out$se_concentration <- tidy$se_concentration
   if ("pcov" %in% names(tidy))      out$pcov      <- tidy$pcov
   if ("pcov_pass" %in% names(tidy)) out$pcov_pass <- tidy$pcov_pass
+
+  # extra columns used by the additive model (subject, dilution, censoring)
+  carry <- if (is.null(carry))
+    c("patientid", "dilution", "censor_class", "censor_type",
+      "censor_lower", "censor_upper") else carry
+  for (cc in setdiff(intersect(carry, names(tidy)), names(out)))
+    out[[cc]] <- tidy[[cc]]
 
   # design columns + cell factor
   for (d in design) out[[d]] <- tidy[[d]]

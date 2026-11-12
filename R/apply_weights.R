@@ -19,6 +19,8 @@
 #' @param concentration_col Character: predicted concentration column name.
 #' @param se_col Character: SE of concentration column name.
 #' @param pcov_col Character: posterior CV column name.
+#' @param predictor Scale predictor; must match the one used to fit the
+#'   `scale_table` (default `"auto"`, as in [fit_saturated_weight()]).
 #'
 #' @return The input data frame with added columns: `yi`, `cv_i`, `log_cv`,
 #'   `cv_source`, `sigma_i`, `w_saturated`, `w_saturated_norm`.
@@ -64,11 +66,13 @@ apply_saturated_weights <- function(
     group_vars        = c("antigen", "source"),
     concentration_col = "predicted_concentration",
     se_col            = "se_concentration",
-    pcov_col          = "pcov"
+    pcov_col          = "pcov",
+    predictor         = c("auto", "se", "pcov", "se_over_conc")
 ) {
-  # Prepare cv columns
+  predictor <- match.arg(predictor)
+  # Prepare cv columns (use the same predictor the scale_table was fitted with)
   df <- prepare_cv(df, concentration_col = concentration_col,
-                   se_col = se_col, pcov_col = pcov_col)
+                   se_col = se_col, pcov_col = pcov_col, predictor = predictor)
 
   # Ensure gamma_0 / gamma_1 exist in scale_table
   if (!"gamma_0" %in% names(scale_table) && "phi" %in% names(scale_table))
