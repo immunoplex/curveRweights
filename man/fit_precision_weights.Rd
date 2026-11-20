@@ -45,8 +45,11 @@ of curveRcore's bounds.}
 
 \item{...}{MCMC controls and priors passed to \code{\link[=fit_additive_weight]{fit_additive_weight()}} or
 \code{\link[=fit_saturated_weight]{fit_saturated_weight()}} (e.g. \code{iter}, \code{warmup}, \code{chains},
-\code{cores}, \code{adapt_delta}, \code{seed}; \code{fix_beta1} for the
-additive model).}
+\code{cores}, \code{adapt_delta}, \code{seed}; \code{fix_beta1} and
+\code{fix_kappa} for the additive model).
+
+To turn the subject random intercept off in the additive model, pass
+\code{patient_col = NA}.}
 }
 \value{
 A \code{precision_weights} object: a list with \code{$estimates},

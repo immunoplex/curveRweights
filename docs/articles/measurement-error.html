@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -264,6 +264,31 @@ means “mostly signal”, 0.3 means “mostly assay noise”.</p>
 <p>Reliability is the number to <strong>show</strong> to collaborators.
 A weight depends on an arbitrary scale; a reliability does not. It also
 explains regression dilution, below.</p>
+<p>Two cautions when you report it:</p>
+<ul>
+<li>
+<strong>Which variation counts as signal depends on the
+model.</strong> When the fit includes a subject random intercept (the
+default whenever a <code>patientid</code> column is present; see <a href="#repeated">Repeated measures</a>), differences <em>between</em>
+people go into that intercept, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>τ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\tau^2</annotation></semantics></math>
+is the variation that remains <em>within</em> a person once the design
+cell is accounted for. The reliability is then a within-person
+reliability: how much of the change from one sample to the next, for the
+same person, is real.</li>
+<li>
+<strong>Reliability belongs to the calibration that produced the
+<code>se</code>.</strong> The same samples calibrated with the Bayesian
+and the frequentist curve fit have different <code>se</code> values, and
+the model’s split of the variance follows the <code>se</code>. In one
+real data set the Bayesian <code>se</code> varied much less from sample
+to sample than the frequentist <code>se</code> did, although the scatter
+of the readings was the same; the fit needed
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>≈</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">\kappa \approx 3</annotation></semantics></math>
+for the Bayesian <code>se</code> (against 1.5), and the median
+reliability was 0.04 against 0.64. Compare reliabilities only within one
+calibration method.</li>
+</ul>
 <div class="section level3">
 <h3 id="attenuation">Weights fix efficiency, not bias in predictors<a class="anchor" aria-label="anchor" href="#attenuation"></a>
 </h3>
@@ -346,8 +371,30 @@ out-of-range samples by their limits instead of weights.
 are not independent. <code><a href="../reference/fit_additive_weight.html">fit_additive_weight()</a></code> accepts a
 patient column and adds a patient random intercept, the familiar
 <code>(1 | patientid)</code>, so the repeated measures are not
-over-counted. Dilutions or replicates of the <em>same sample</em> are
-handled with <code>sample_col</code>.</p>
+over-counted. <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code> does this by default
+when the data carry <code>patientid</code>; pass
+<code>patient_col = NA</code> to leave it out.</p>
+<p>With the patient term in the model,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>τ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\tau^2</annotation></semantics></math>
+changes meaning: the stable person-to-person differences are absorbed by
+the patient intercept, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>τ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\tau^2</annotation></semantics></math>
+is the variation <em>within</em> a person (from one time point or sample
+to the next) that the design cell does not explain. Without the patient
+term,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>τ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\tau^2</annotation></semantics></math>
+is the whole between-sample spread within a cell.</p>
+<p>Dilutions or replicates of the <em>same sample</em> are not yet
+handled well. A sample random intercept (<code>sample_col</code> in
+<code><a href="../reference/fit_additive_weight.html">fit_additive_weight()</a></code>) absorbs the real between-sample
+variation, which leaves
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+describing only the scatter between readings of one sample;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+then tends to zero and the ceiling on the weights is lost. Until a
+formulation that treats the sample term as the signal is available,
+several readings of one sample count as separate observations, which
+overstates how much independent information they carry.</p>
 <p>Note on units: the weights are on the <strong>log10
 concentration</strong> scale, the scale the model is fitted on. When
 censoring is used, the model puts the response on the <em>final
@@ -466,7 +513,22 @@ is weakly identified; treat
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
 and the reliabilities from such a group as provisional, or fix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\kappa = 1</annotation></semantics></math>
-and assume <code>se</code> is the true measurement SD.</p>
+with <code>fix_kappa = TRUE</code> and assume <code>se</code> is the
+true measurement SD.</p>
+<p><strong>Reading
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>.</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\kappa = 1</annotation></semantics></math>
+means the curve’s <code>se</code> is exactly the measurement SD. Values
+between about 0.5 and 2 are common: the <code>se</code> captures the
+shape of the precision profile but not its exact size (plate handling
+and bead counts add noise the curve fit does not see). A
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+well above 2 says the readings scatter much more than their
+<code>se</code> suggests, or that the <code>se</code> barely changes
+between samples whose real precision differs; either way the
+reliabilities rest heavily on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+and should be read with care.</p>
 </div>
 <div class="section level2">
 <h2 id="glossary">Glossary<a class="anchor" aria-label="anchor" href="#glossary"></a>

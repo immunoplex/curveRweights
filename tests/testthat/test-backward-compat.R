@@ -24,7 +24,7 @@ test_that("the multiplicative result keeps the shape the worker reads", {
                                              df$se_concentration)
   df$timeperiod <- df$cell
   wd <- as_weight_data(df, design = "timeperiod", include_plate = FALSE)
-  pw <- fit_precision_weights(wd, iter = 400, warmup = 200, chains = 2, cores = 2)
+  pw <- quiet_ess(fit_precision_weights(wd, iter = 400, warmup = 200, chains = 2, cores = 2))
   e <- pw$estimates
   # exactly the fields worker_weights.R reads when it writes calib_weights_fit
   expect_true(all(c("phi", "phi_CI", "beta1", "beta1_CI", "interpretation",

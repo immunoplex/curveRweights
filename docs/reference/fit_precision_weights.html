@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -103,8 +103,10 @@ of curveRcore's bounds.</p></dd>
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>MCMC controls and priors passed to <code><a href="fit_additive_weight.html">fit_additive_weight()</a></code> or
 <code><a href="fit_saturated_weight.html">fit_saturated_weight()</a></code> (e.g. <code>iter</code>, <code>warmup</code>, <code>chains</code>,
-<code>cores</code>, <code>adapt_delta</code>, <code>seed</code>; <code>fix_beta1</code> for the
-additive model).</p></dd>
+<code>cores</code>, <code>adapt_delta</code>, <code>seed</code>; <code>fix_beta1</code> and
+<code>fix_kappa</code> for the additive model).</p>
+<p>To turn the subject random intercept off in the additive model, pass
+<code>patient_col = NA</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -57,7 +57,7 @@ test_that("censored likelihood reduces low-cell bias vs treating the bound as a 
   f <- function(col) fit_additive_weight(
     df, cell_col = "cell", plate_col = NULL, patient_col = "patientid",
     censor_col = col, response_is_log10 = TRUE,
-    iter = 800, warmup = 400, chains = 2, cores = 2, seed = 3)
+    iter = 2000, warmup = 1000, chains = 2, cores = 2, seed = 3)
   with_c <- f("censor_type"); no_c <- f(NULL)
   truth <- mean(df$truth_y[df$cell == "c1"])
   est <- function(sw) unname(brms::fixef(sw$fit)["cellc1", "Estimate"])
@@ -72,8 +72,8 @@ test_that("fit_precision_weights(model = \"additive\") returns the additive resu
   df$censor_type <- "none"
   wd <- as_weight_data(df, design = "timeperiod", include_plate = FALSE)
   expect_true("patientid" %in% names(wd))                 # carried through
-  pw <- fit_precision_weights(wd, model = "additive",
-                              iter = 600, warmup = 300, chains = 2, cores = 2)
+  pw <- quiet_ess(fit_precision_weights(wd, model = "additive",
+                              iter = 600, warmup = 300, chains = 2, cores = 2))
   expect_s3_class(pw, "precision_weights")
   expect_equal(pw$estimates$model, "additive")
   expect_true(all(c("v_meas", "tau2", "sigma", "w", "reliability", "w_norm",
@@ -102,4 +102,44 @@ test_that("multiplicative model remains available and flagged", {
   expect_equal(pw$estimates$model, "multiplicative")
   expect_true(is.finite(pw$estimates$phi))
   expect_output(print(pw), "multiplicative")
+})
+
+test_that("fix_kappa = TRUE fixes kappa at 1 and says so", {
+  skip_if_no_stan()
+  df <- make_add_sim(n_per = 40, seed = 21, cens_q = 0)
+  df$predicted_concentration <- df$truth_y
+  sw <- quiet_ess(fit_additive_weight(df, cell_col = "cell", plate_col = NULL,
+                            patient_col = "patientid", response_is_log10 = TRUE,
+                            fix_kappa = TRUE,
+                            iter = 600, warmup = 300, chains = 2, cores = 2, seed = 3))
+  expect_equal(sw$kappa, 1)
+  expect_true(all(is.na(sw$kappa_CI)))
+  expect_true(sw$diagnostics$fix_kappa)
+  expect_match(sw$diagnostics$identifiability, "kappa fixed at 1")
+  expect_false(grepl("lkappa", sw$formula$scale))
+  expect_true(is.finite(sw$tau) && sw$tau > 0)
+  # weights follow from tau and kappa = 1
+  q <- sw$data$cens_flag %in% 0L
+  expect_equal(sw$data$v_meas[q], sw$data$se_meas[q]^2, tolerance = 1e-8)
+})
+
+test_that("fit_precision_weights records the options; the patient term can be left out", {
+  skip_if_no_stan()
+  df <- make_add_sim(n_per = 30, n_cell = 4, seed = 33, cens_q = 0)
+  df$predicted_concentration <- df$truth_y
+  df$censor_type <- "none"
+  wd <- as_weight_data(df, design = "timeperiod", include_plate = FALSE)
+  pw <- quiet_ess(fit_precision_weights(wd, model = "additive", patient_col = NA,
+                                        iter = 500, warmup = 250, chains = 2, cores = 2, seed = 2))
+  o <- pw$estimates$options
+  expect_null(o$patient_col)
+  expect_false(o$use_censoring)
+  expect_false(o$fix_kappa)
+  expect_true(o$fix_beta1)
+  expect_false(grepl("patientid", pw$estimates$formula$location))
+  # default: patient term on when the data carry patientid
+  pw1 <- quiet_ess(fit_precision_weights(wd, model = "additive",
+                                         iter = 400, warmup = 200, chains = 2, cores = 2, seed = 2))
+  expect_identical(pw1$estimates$options$patient_col, "patientid")
+  expect_match(pw1$estimates$formula$location, "(1 | patientid)", fixed = TRUE)
 })

@@ -40,8 +40,11 @@
 #'   of curveRcore's bounds.
 #' @param ... MCMC controls and priors passed to [fit_additive_weight()] or
 #'   [fit_saturated_weight()] (e.g. \code{iter}, \code{warmup}, \code{chains},
-#'   \code{cores}, \code{adapt_delta}, \code{seed}; \code{fix_beta1} for the
-#'   additive model).
+#'   \code{cores}, \code{adapt_delta}, \code{seed}; \code{fix_beta1} and
+#'   \code{fix_kappa} for the additive model).
+#'
+#'   To turn the subject random intercept off in the additive model, pass
+#'   \code{patient_col = NA}.
 #'
 #' @return A \code{precision_weights} object: a list with \code{$estimates},
 #'   \code{$weights}, \code{$design}, \code{$scale}, and \code{$fit}.
@@ -94,6 +97,8 @@ fit_precision_weights <- function(data, design = NULL,
     plate_col <- if ("curve_id" %in% names(data)) "curve_id" else NULL
   if (is.null(patient_col))
     patient_col <- if ("patientid" %in% names(data)) "patientid" else NULL
+  else if (length(patient_col) == 1L && is.na(patient_col))
+    patient_col <- NULL   # explicit opt-out of the subject random intercept
 
   # The adapter's `predicted_concentration` is log10 when is_log_independent;
   # tell the estimator not to re-log it.
@@ -178,6 +183,14 @@ fit_precision_weights <- function(data, design = NULL,
         reliability_CI = sw$reliability_CI,
         interpretation = sw$diagnostics$identifiability,
         diagnostics    = sw$diagnostics,
+        # what was actually applied (after the data-driven defaults), so a
+        # caller can record how this weight set was made
+        options        = list(
+          use_censoring = !is.null(cens_col),
+          patient_col   = patient_col,
+          plate_col     = plate_col,
+          fix_beta1     = isTRUE(sw$diagnostics$fix_beta1),
+          fix_kappa     = isTRUE(sw$diagnostics$fix_kappa)),
         formula        = sw$formula
       ),
       weights = weights,

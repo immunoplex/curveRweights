@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">curveRweights</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,35 @@
       <small>Source: <a href="https://github.com/immunoplex/curveRweights/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.1" id="curverweights-031">curveRweights 0.3.1<a class="anchor" aria-label="anchor" href="#curverweights-031"></a></h2>
+<div class="section level3">
+<h3 id="additive-model-options-0-3-1">Additive model: options<a class="anchor" aria-label="anchor" href="#additive-model-options-0-3-1"></a></h3>
+<ul><li>
+<code>fix_kappa</code> (in <code><a href="../reference/fit_additive_weight.html">fit_additive_weight()</a></code>, passed on by <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code>): fix kappa = 1, i.e. take the calibration curve’s <code>se</code> as the measurement SD and estimate only tau. For data whose <code>se</code> barely varies, where kappa is weakly identified. The identifiability note says that kappa was fixed.</li>
+<li>
+<code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code> accepts <code>patient_col = NA</code> to leave out the subject random intercept.</li>
+<li>The additive result’s <code>$estimates$options</code> records the options actually applied (<code>use_censoring</code>, <code>patient_col</code>, <code>plate_col</code>, <code>fix_beta1</code>, <code>fix_kappa</code>).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fix-0-3-1">Bug fix<a class="anchor" aria-label="anchor" href="#bug-fix-0-3-1"></a></h3>
+<ul><li>
+<code><a href="../reference/fit_additive_weight.html">fit_additive_weight()</a></code> no longer fails when the model has no group term at all (no patient term and a single plate): <code><a href="https://rdrr.io/pkg/nlme/man/VarCorr.html" class="external-link">brms::VarCorr()</a></code> errors on such a model and is now only called when there are group terms.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="known-limitation-0-3-1">Known limitation<a class="anchor" aria-label="anchor" href="#known-limitation-0-3-1"></a></h3>
+<ul><li>
+<code>fit_additive_weight(sample_col = )</code> (several readings of one sample) is not recommended. With the sample intercept in the location, the sample term absorbs the real between-sample variation and tau is left to describe only the extra scatter between readings of one sample; tau then tends to zero, the ceiling 1/tau^2 on the weights is lost, and sampling is poor (high Rhat, treedepth warnings in a two-dilution simulation). A formulation in which the sample term <em>is</em> the signal (residual = measurement error only) is planned. <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code> does not pass it on. The i-spi-compute worker stores them in <code>calib_weights_fit.fit_options</code> (curveRcore &gt;= 0.7.1).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-3-1">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-3-1"></a></h3>
+<ul><li>Measurement-error vignette: with the subject random intercept in the model, tau is the variation <em>within</em> a person and reliability is a within-person reliability; reliability belongs to the calibration method that produced the <code>se</code> (Bayesian and frequentist <code>se</code> can split the variance very differently); how to read kappa far from 1; <code>fix_kappa</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="tests-0-3-1">Tests<a class="anchor" aria-label="anchor" href="#tests-0-3-1"></a></h3>
+<ul><li>Shape-only tests silence Stan’s low-ESS warnings (<code>quiet_ess()</code> helper); the censored-likelihood bias test runs longer chains. The suite runs without warnings.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="curverweights-030">curveRweights 0.3.0<a class="anchor" aria-label="anchor" href="#curverweights-030"></a></h2>
 <div class="section level3">

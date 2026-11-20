@@ -28,8 +28,9 @@
 #' Location: \code{yi ~ 0 + cell + (1|patient) + (1|plate) [+ (1|sample)]}, where
 #' \code{cell} is the saturated design factor (e.g. arm by time point). The
 #' patient term absorbs correlation between repeated samples of the same
-#' subject (otherwise counted as noise); the optional sample term does the same
-#' for several dilutions or replicates of one physical sample.
+#' subject (otherwise counted as noise). The optional sample term is meant for
+#' several dilutions or replicates of one physical sample, but see
+#' \code{sample_col}: it is not recommended yet.
 #'
 #' Scale: \eqn{\sigma_i = \sqrt{\tau^2 + \kappa^2 se_i^{2\beta_1}}} via a
 #' non-linear \code{sigma} formula. Rows with \code{censor_type} \code{left},
@@ -51,7 +52,10 @@
 #' @param patient_col Subject grouping column; \code{NULL} for none. Strongly
 #'   recommended when subjects are measured more than once.
 #' @param sample_col Optional column identifying a physical sample measured
-#'   several times (dilutions/replicates).
+#'   several times (dilutions/replicates). Not recommended yet: the sample
+#'   intercept absorbs the real between-sample variation, so tau describes only
+#'   the scatter between readings of one sample and tends to zero (the ceiling
+#'   on the weights is lost and sampling is poor). See NEWS (0.3.1).
 #' @param censor_col Name of the censoring-type column (\code{"none"},
 #'   \code{"left"}, \code{"right"}, \code{"interval"}). \code{NULL} (default)
 #'   treats every row as quantified.
@@ -64,6 +68,12 @@
 #'   you use curveRcore censoring bounds and dilutions differ.
 #' @param response_is_log10 Is \code{concentration_col} already log10?
 #' @param fix_beta1 Fix \eqn{\beta_1 = 1} (default) or estimate it.
+#' @param fix_kappa Fix \eqn{\kappa = 1} instead of estimating it (default
+#'   \code{FALSE}). With \code{TRUE} the calibration curve's \code{se} is taken
+#'   as the true measurement SD and only \eqn{\tau} is estimated. Use it when
+#'   \eqn{\kappa} is weakly identified (the \code{se} values barely differ
+#'   between samples), or when you trust the curve's \code{se}. The
+#'   \code{identifiability} note then says that \eqn{\kappa} was fixed.
 #' @param prior_location,prior_ltau,prior_lkappa,prior_beta1,prior_group_sd
 #'   \code{brms::prior} objects.
 #' @param iter,warmup,chains,cores,adapt_delta,seed MCMC controls.
@@ -98,6 +108,7 @@ fit_additive_weight <- function(
     dilution_col      = NULL,
     response_is_log10 = FALSE,
     fix_beta1         = TRUE,
+    fix_kappa         = FALSE,
     prior_location    = brms::set_prior("normal(0, 2)", class = "b"),
     prior_ltau        = brms::set_prior("normal(-1.2, 1)", class = "b", nlpar = "ltau"),
     prior_lkappa      = brms::set_prior("normal(0, 0.5)",  class = "b", nlpar = "lkappa"),
@@ -169,22 +180,19 @@ fit_additive_weight <- function(
   any_cens <- any(d_fit$cens_flag != 0L)
   lhs <- if (any_cens) "yi | cens(cens_flag, yi2)" else "yi"
 
-  sig <- if (fix_beta1)
-    "sigma ~ log(sqrt(exp(2 * ltau) + exp(2 * lkappa) * se_meas^2))"
-  else
-    "sigma ~ log(sqrt(exp(2 * ltau) + exp(2 * lkappa) * se_meas^(2 * beta1)))"
-  bf_formula <- if (fix_beta1)
-    brms::bf(stats::as.formula(paste(lhs, "~", loc_rhs)),
-             brms::nlf(stats::as.formula(sig)),
-             ltau ~ 1, lkappa ~ 1)
-  else
-    brms::bf(stats::as.formula(paste(lhs, "~", loc_rhs)),
-             brms::nlf(stats::as.formula(sig)),
-             ltau ~ 1, lkappa ~ 1, beta1 ~ 1)
+  kap_term <- if (fix_kappa) "" else "exp(2 * lkappa) * "
+  se_term  <- if (fix_beta1) "se_meas^2" else "se_meas^(2 * beta1)"
+  sig <- paste0("sigma ~ log(sqrt(exp(2 * ltau) + ", kap_term, se_term, "))")
+  nl_pars <- c("ltau ~ 1", if (!fix_kappa) "lkappa ~ 1", if (!fix_beta1) "beta1 ~ 1")
+  bf_formula <- do.call(brms::bf, c(
+    list(stats::as.formula(paste(lhs, "~", loc_rhs)),
+         brms::nlf(stats::as.formula(sig))),
+    lapply(nl_pars, stats::as.formula)))
   message("  location: ", lhs, " ~ ", loc_rhs)
   message("  scale:    ", sig)
 
-  priors <- c(prior_location, prior_ltau, prior_lkappa,
+  priors <- c(prior_location, prior_ltau,
+              if (!fix_kappa) prior_lkappa,
               if (!fix_beta1) prior_beta1,
               if (length(groups)) prior_group_sd)
 
@@ -210,10 +218,11 @@ fit_additive_weight <- function(
     warning("fit_additive_weight: ", n_div, " divergent transitions")
 
   # ---- Parameters -----------------------------------------------------------
-  vars <- c("b_ltau_Intercept", "b_lkappa_Intercept",
+  vars <- c("b_ltau_Intercept", if (!fix_kappa) "b_lkappa_Intercept",
             if (!fix_beta1) "b_beta1_Intercept")
   dr <- as.data.frame(brms::as_draws_df(fit, variable = vars))
-  ltau <- dr$b_ltau_Intercept; lkap <- dr$b_lkappa_Intercept
+  ltau <- dr$b_ltau_Intercept
+  lkap <- if (fix_kappa) rep(0, nrow(dr)) else dr$b_lkappa_Intercept
   beta_d <- if (fix_beta1) rep(1, nrow(dr)) else dr$b_beta1_Intercept
   tau_d  <- exp(ltau); kappa_d <- exp(lkap)
   ci <- function(x) stats::setNames(
@@ -229,8 +238,10 @@ fit_additive_weight <- function(
   # identifiability: if the data barely move log(kappa) away from its prior the
   # signal/measurement split is being decided by the prior.
   sd_prior <- 0.5
-  kappa_ratio <- stats::sd(lkap) / sd_prior
-  ident <- if (kappa_ratio > 0.8)
+  kappa_ratio <- if (fix_kappa) NA_real_ else stats::sd(lkap) / sd_prior
+  ident <- if (fix_kappa)
+    "kappa fixed at 1 (the curve's se is taken as the measurement SD)"
+  else if (kappa_ratio > 0.8)
     paste0("kappa is weakly identified (posterior SD of log kappa is ",
            round(100 * kappa_ratio), "% of its prior SD): the split between ",
            "signal and measurement variance is largely set by the prior. ",
@@ -258,14 +269,16 @@ fit_additive_weight <- function(
   message("  overall reliability = ", signif(rel, 3), "   weight_ratio = ",
           w_diag$weight_ratio, "   n_eff = ", w_diag$n_eff)
 
-  vc <- brms::VarCorr(fit)
+  # VarCorr() errors on a model with no group terms (no patient term and a
+  # single plate), so only ask for it when there are some
+  vc <- if (length(groups)) brms::VarCorr(fit) else list()
   gsd <- vapply(groups, function(g)
     if (!is.null(vc[[g]])) unname(vc[[g]]$sd[1, "Estimate"]) else NA_real_,
     numeric(1))
 
   list(
     fit = fit, tau = tau, tau2 = tau2, kappa = kappa, beta1 = beta1,
-    tau_CI = ci(tau_d), kappa_CI = ci(kappa_d),
+    tau_CI = ci(tau_d), kappa_CI = if (fix_kappa) c(lo = NA_real_, hi = NA_real_) else ci(kappa_d),
     beta1_CI = if (fix_beta1) c(lo = NA_real_, hi = NA_real_) else ci(beta_d),
     reliability = rel, reliability_CI = ci(rel_d),
     data = d_out,
@@ -274,7 +287,7 @@ fit_additive_weight <- function(
       n_cells = n_cells, n_by_censoring = as.list(n_cens),
       rhat_max = signif(rhat_max, 4), n_divergent = n_div,
       group_sd = if (length(gsd)) signif(gsd, 4) else NULL,
-      fix_beta1 = fix_beta1, identifiability = ident,
+      fix_beta1 = fix_beta1, fix_kappa = fix_kappa, identifiability = ident,
       kappa_sd_ratio = signif(kappa_ratio, 3), weight = w_diag),
     formula = list(location = paste(lhs, "~", loc_rhs), scale = sig),
     priors_used = priors

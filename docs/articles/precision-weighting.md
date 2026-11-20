@@ -595,7 +595,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] dplyr_1.2.1         curveRweights_0.3.0
+#> [1] dplyr_1.2.1         curveRweights_0.3.1
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6          tensorA_0.36.2.1      QuickJSR_1.9.2       

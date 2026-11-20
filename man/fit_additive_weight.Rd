@@ -19,6 +19,7 @@ fit_additive_weight(
   dilution_col = NULL,
   response_is_log10 = FALSE,
   fix_beta1 = TRUE,
+  fix_kappa = FALSE,
   prior_location = brms::set_prior("normal(0, 2)", class = "b"),
   prior_ltau = brms::set_prior("normal(-1.2, 1)", class = "b", nlpar = "ltau"),
   prior_lkappa = brms::set_prior("normal(0, 0.5)", class = "b", nlpar = "lkappa"),
@@ -50,7 +51,10 @@ fit_additive_weight(
 recommended when subjects are measured more than once.}
 
 \item{sample_col}{Optional column identifying a physical sample measured
-several times (dilutions/replicates).}
+several times (dilutions/replicates). Not recommended yet: the sample
+intercept absorbs the real between-sample variation, so tau describes only
+the scatter between readings of one sample and tends to zero (the ceiling
+on the weights is lost and sampling is poor). See NEWS (0.3.1).}
 
 \item{censor_col}{Name of the censoring-type column (\code{"none"},
 \code{"left"}, \code{"right"}, \code{"interval"}). \code{NULL} (default)
@@ -69,6 +73,13 @@ you use curveRcore censoring bounds and dilutions differ.}
 \item{response_is_log10}{Is \code{concentration_col} already log10?}
 
 \item{fix_beta1}{Fix \eqn{\beta_1 = 1} (default) or estimate it.}
+
+\item{fix_kappa}{Fix \eqn{\kappa = 1} instead of estimating it (default
+\code{FALSE}). With \code{TRUE} the calibration curve's \code{se} is taken
+as the true measurement SD and only \eqn{\tau} is estimated. Use it when
+\eqn{\kappa} is weakly identified (the \code{se} values barely differ
+between samples), or when you trust the curve's \code{se}. The
+\code{identifiability} note then says that \eqn{\kappa} was fixed.}
 
 \item{prior_location, prior_ltau, prior_lkappa, prior_beta1, prior_group_sd}{\code{brms::prior} objects.}
 
@@ -119,8 +130,9 @@ only with plenty of data over a wide range of \code{se}.
 Location: \code{yi ~ 0 + cell + (1|patient) + (1|plate) [+ (1|sample)]}, where
 \code{cell} is the saturated design factor (e.g. arm by time point). The
 patient term absorbs correlation between repeated samples of the same
-subject (otherwise counted as noise); the optional sample term does the same
-for several dilutions or replicates of one physical sample.
+subject (otherwise counted as noise). The optional sample term is meant for
+several dilutions or replicates of one physical sample, but see
+\code{sample_col}: it is not recommended yet.
 
 Scale: \eqn{\sigma_i = \sqrt{\tau^2 + \kappa^2 se_i^{2\beta_1}}} via a
 non-linear \code{sigma} formula. Rows with \code{censor_type} \code{left},

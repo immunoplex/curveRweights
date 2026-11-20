@@ -153,6 +153,26 @@ Reliability is the number to **show** to collaborators. A weight depends
 on an arbitrary scale; a reliability does not. It also explains
 regression dilution, below.
 
+Two cautions when you report it:
+
+- **Which variation counts as signal depends on the model.** When the
+  fit includes a subject random intercept (the default whenever a
+  `patientid` column is present; see [Repeated measures](#repeated)),
+  differences *between* people go into that intercept, and $`\tau^2`$ is
+  the variation that remains *within* a person once the design cell is
+  accounted for. The reliability is then a within-person reliability:
+  how much of the change from one sample to the next, for the same
+  person, is real.
+- **Reliability belongs to the calibration that produced the `se`.** The
+  same samples calibrated with the Bayesian and the frequentist curve
+  fit have different `se` values, and the model’s split of the variance
+  follows the `se`. In one real data set the Bayesian `se` varied much
+  less from sample to sample than the frequentist `se` did, although the
+  scatter of the readings was the same; the fit needed
+  $`\kappa \approx 3`$ for the Bayesian `se` (against 1.5), and the
+  median reliability was 0.04 against 0.64. Compare reliabilities only
+  within one calibration method.
+
 ### Weights fix efficiency, not bias in predictors
 
 Weights improve the precision of an estimate when the noisy variable is
@@ -233,8 +253,27 @@ independent.
 [`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md)
 accepts a patient column and adds a patient random intercept, the
 familiar `(1 | patientid)`, so the repeated measures are not
-over-counted. Dilutions or replicates of the *same sample* are handled
-with `sample_col`.
+over-counted.
+[`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md)
+does this by default when the data carry `patientid`; pass
+`patient_col = NA` to leave it out.
+
+With the patient term in the model, $`\tau^2`$ changes meaning: the
+stable person-to-person differences are absorbed by the patient
+intercept, and $`\tau^2`$ is the variation *within* a person (from one
+time point or sample to the next) that the design cell does not explain.
+Without the patient term, $`\tau^2`$ is the whole between-sample spread
+within a cell.
+
+Dilutions or replicates of the *same sample* are not yet handled well. A
+sample random intercept (`sample_col` in
+[`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md))
+absorbs the real between-sample variation, which leaves $`\tau`$
+describing only the scatter between readings of one sample; $`\tau`$
+then tends to zero and the ceiling on the weights is lost. Until a
+formulation that treats the sample term as the signal is available,
+several readings of one sample count as separate observations, which
+overstates how much independent information they carry.
 
 Note on units: the weights are on the **log10 concentration** scale, the
 scale the model is fitted on. When censoring is used, the model puts the
@@ -275,7 +314,17 @@ cannot tell the two apart. By default $`\beta_1`$ is fixed at 1 (the
 theoretical value from the delta method) and $`\kappa`$ is estimated.
 The fit reports a message when $`\kappa`$ is weakly identified; treat
 $`\tau`$ and the reliabilities from such a group as provisional, or fix
-$`\kappa = 1`$ and assume `se` is the true measurement SD.
+$`\kappa = 1`$ with `fix_kappa = TRUE` and assume `se` is the true
+measurement SD.
+
+**Reading $`\kappa`$.** $`\kappa = 1`$ means the curve’s `se` is exactly
+the measurement SD. Values between about 0.5 and 2 are common: the `se`
+captures the shape of the precision profile but not its exact size
+(plate handling and bead counts add noise the curve fit does not see). A
+$`\kappa`$ well above 2 says the readings scatter much more than their
+`se` suggests, or that the `se` barely changes between samples whose
+real precision differs; either way the reliabilities rest heavily on
+$`\kappa`$ and should be read with care.
 
 ## Glossary
 
