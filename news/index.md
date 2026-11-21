@@ -1,5 +1,86 @@
 # Changelog
 
+## curveRweights 0.3.1
+
+### Additive model: options
+
+- `fix_kappa` (in
+  [`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md),
+  passed on by
+  [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md)):
+  fix kappa = 1, i.e. take the calibration curve’s `se` as the
+  measurement SD and estimate only tau. For data whose `se` barely
+  varies, where kappa is weakly identified. The identifiability note
+  says that kappa was fixed.
+- [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md)
+  accepts `patient_col = NA` to leave out the subject random intercept.
+- The additive result’s `$estimates$options` records the options
+  actually applied (`use_censoring`, `patient_col`, `plate_col`,
+  `fix_beta1`, `fix_kappa`). The i-spi-compute worker stores them in
+  `calib_weights_fit.fit_options` (curveRcore \>= 0.7.1).
+
+### The same diagnostics for both models
+
+Both fits are Bayesian location-scale models sampled with Stan, so both
+now report the same entries in `$diagnostics` (and
+`$estimates$diagnostics` from
+[`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md)):
+
+- `rhat_max`, `n_divergent` (already there) and new `ess_min`, the
+  lowest bulk or tail effective sample size over the sampled parameters
+  (via the posterior package, now in Imports).
+- `ident_sd_ratio`: posterior SD / prior SD of the key scale parameter.
+  For the additive model it is the existing kappa ratio (now read from
+  the `prior_lkappa` actually used rather than assumed 0.5); for the
+  multiplicative model it is new, for beta1 (NA when the slope is
+  dropped).
+- `resid_sd`, `resid_sd_ratio`: a variance-model check. The scaled
+  residuals (y - fitted mean) / sigma of the quantified rows should have
+  SD 1 everywhere; `resid_sd` is their robust SD, `resid_sd_ratio` the
+  robust SD in the lowest-se fifth over that in the highest-se fifth
+  (above 1: low-se samples are given too much weight).
+
+The weights themselves are unchanged: the diagnostics are computed after
+the fit (the multiplicative weights are identical to 0.3.1 before this
+change for the same seed).
+
+### Bug fix
+
+- [`fit_additive_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_additive_weight.md)
+  no longer fails when the model has no group term at all (no patient
+  term and a single plate):
+  [`brms::VarCorr()`](https://rdrr.io/pkg/nlme/man/VarCorr.html) errors
+  on such a model and is now only called when there are group terms.
+
+### Known limitation
+
+- `fit_additive_weight(sample_col = )` (several readings of one sample)
+  is not recommended. With the sample intercept in the location, the
+  sample term absorbs the real between-sample variation and tau is left
+  to describe only the extra scatter between readings of one sample; tau
+  then tends to zero, the ceiling 1/tau^2 on the weights is lost, and
+  sampling is poor (high Rhat, treedepth warnings in a two-dilution
+  simulation). A formulation in which the sample term *is* the signal
+  (residual = measurement error only) is planned.
+  [`fit_precision_weights()`](https://immunoplex.github.io/curveRweights/reference/fit_precision_weights.md)
+  does not pass it on.
+
+### Documentation
+
+- Measurement-error vignette: with the subject random intercept in the
+  model, tau is the variation *within* a person and reliability is a
+  within-person reliability; reliability belongs to the calibration
+  method that produced the `se` (Bayesian and frequentist `se` can split
+  the variance very differently); how to read kappa far from 1;
+  `fix_kappa`; a new section on checking a fit with the diagnostics both
+  models share.
+
+### Tests
+
+- Shape-only tests silence Stan’s low-ESS warnings (`quiet_ess()`
+  helper); the censored-likelihood bias test runs longer chains. The
+  suite runs without warnings.
+
 ## curveRweights 0.3.0
 
 ### Additive measurement-error model (new, opt-in)

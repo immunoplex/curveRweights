@@ -68,7 +68,10 @@ fit_precision_weights(
   or
   [`fit_saturated_weight()`](https://immunoplex.github.io/curveRweights/reference/fit_saturated_weight.md)
   (e.g. `iter`, `warmup`, `chains`, `cores`, `adapt_delta`, `seed`;
-  `fix_beta1` for the additive model).
+  `fix_beta1` and `fix_kappa` for the additive model).
+
+  To turn the subject random intercept off in the additive model, pass
+  `patient_col = NA`.
 
 ## Value
 

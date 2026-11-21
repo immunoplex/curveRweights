@@ -595,11 +595,11 @@ reflect the data; the narrower prior gives more conservative
 sessionInfo()
 #> R version 4.6.2 (2026-10-29)
 #> Platform: x86_64-pc-linux-gnu
-#> Running under: Ubuntu 24.04.5 LTS
+#> Running under: Ubuntu 26.04.1 LTS
 #> 
 #> Matrix products: default
 #> BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-#> LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
+#> LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.32.so;  LAPACK version 3.12.0
 #> 
 #> locale:
 #>  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
@@ -614,31 +614,31 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] dplyr_1.2.1         curveRweights_0.3.0
+#> [1] dplyr_1.2.1         curveRweights_0.3.1
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] tensorA_0.36.2.1     bridgesampling_1.2-1 sass_0.4.10         
+#>  [1] tensorA_0.36.2.1     bridgesampling_1.2-1 sass_0.5.0          
 #>  [4] generics_0.1.4       stringi_1.8.9        lattice_0.23-1      
 #>  [7] digest_0.6.39        magrittr_2.0.5       evaluate_1.0.5      
 #> [10] grid_4.6.2           RColorBrewer_1.1-3   mvtnorm_1.4-2       
 #> [13] fastmap_1.2.0        jsonlite_2.0.0       Matrix_1.7-6        
 #> [16] pkgbuild_1.4.8       backports_1.5.1      gridExtra_2.3.1     
 #> [19] Brobdingnag_1.3-1    brms_2.23.0          QuickJSR_1.11.0     
-#> [22] scales_1.4.0         codetools_0.2-20     textshaping_1.0.5   
+#> [22] scales_1.4.0         codetools_0.2-20     textshaping_1.1.0   
 #> [25] jquerylib_0.1.4      abind_1.4-8          cli_3.6.6           
 #> [28] rlang_1.3.0          cachem_1.1.0         yaml_2.3.12         
 #> [31] otel_0.3.0           StanHeaders_2.39.1.1 inline_0.3.21       
 #> [34] rstan_2.32.7         tools_4.6.2          parallel_4.6.2      
 #> [37] rstantools_2.7.1     checkmate_2.3.4      coda_0.19-4.1       
-#> [40] ggplot2_4.0.3        posterior_1.7.0      vctrs_0.7.3         
+#> [40] ggplot2_4.0.4        posterior_1.8.0      vctrs_0.7.3         
 #> [43] R6_2.6.1             stats4_4.6.2         matrixStats_1.5.0   
 #> [46] lifecycle_1.0.5      stringr_1.6.0        fs_2.1.0            
 #> [49] ragg_1.5.2           pkgconfig_2.0.3      desc_1.4.3          
 #> [52] RcppParallel_6.2.1   pkgdown_2.2.1        pillar_1.11.1       
 #> [55] bslib_0.12.0         gtable_0.3.6         loo_2.10.1          
-#> [58] glue_1.8.1           Rcpp_1.1.2           systemfonts_1.3.2   
+#> [58] glue_1.8.1           Rcpp_1.1.2           systemfonts_1.3.3   
 #> [61] xfun_0.62            tibble_3.3.1         tidyselect_1.2.1    
-#> [64] knitr_1.52           farver_2.1.2         bayesplot_1.16.0    
+#> [64] knitr_1.52           farver_2.1.2         bayesplot_1.17.0    
 #> [67] htmltools_0.5.9      nlme_3.1-171         rmarkdown_2.32      
-#> [70] compiler_4.6.2       S7_0.2.2             distributional_0.9.0
+#> [70] compiler_4.6.2       S7_1.0.0             distributional_0.9.0
 ```
