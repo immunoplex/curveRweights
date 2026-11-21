@@ -188,7 +188,13 @@ interval (thinned from the fit).</p></dd>
 <code>beta1_CI</code>), overall <code>reliability</code> and <code>reliability_CI</code>
 (\(\tau^2/(\tau^2 + \bar v)\) over quantified rows), <code>data</code> (the full
 input with the weight columns of <code><a href="compute_additive_weights.html">compute_additive_weights()</a></code>),
-<code>diagnostics</code>, <code>formula</code> and <code>priors_used</code>.</p>
+<code>diagnostics</code> (both models report the same convergence and
+model-check entries: <code>rhat_max</code>, <code>n_divergent</code>, <code>ess_min</code>
+(lowest bulk or tail ESS), <code>ident_sd_ratio</code> (posterior SD / prior SD
+of the key scale parameter), <code>resid_sd</code> and <code>resid_sd_ratio</code>
+(robust SD of the scaled residuals overall, and lowest-se fifth / highest-se
+fifth), with <code>kappa_sd_ratio</code> the same as <code>ident_sd_ratio</code>),
+<code>formula</code> and <code>priors_used</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="in-plain-terms">In plain terms<a class="anchor" aria-label="anchor" href="#in-plain-terms"></a></h2>

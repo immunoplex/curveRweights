@@ -96,7 +96,13 @@ A list with \code{fit}, \code{tau}, \code{tau2}, \code{kappa},
 \code{beta1_CI}), overall \code{reliability} and \code{reliability_CI}
 (\eqn{\tau^2/(\tau^2 + \bar v)} over quantified rows), \code{data} (the full
 input with the weight columns of \code{\link[=compute_additive_weights]{compute_additive_weights()}}),
-\code{diagnostics}, \code{formula} and \code{priors_used}.
+\code{diagnostics} (both models report the same convergence and
+model-check entries: \code{rhat_max}, \code{n_divergent}, \code{ess_min}
+(lowest bulk or tail ESS), \code{ident_sd_ratio} (posterior SD / prior SD
+of the key scale parameter), \code{resid_sd} and \code{resid_sd_ratio}
+(robust SD of the scaled residuals overall, and lowest-se fifth / highest-se
+fifth), with \code{kappa_sd_ratio} the same as \code{ident_sd_ratio}),
+\code{formula} and \code{priors_used}.
 }
 \description{
 Fits a Bayesian Gaussian model in which each observation's variance is the

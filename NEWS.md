@@ -10,7 +10,31 @@
   random intercept.
 * The additive result's `$estimates$options` records the options actually
   applied (`use_censoring`, `patient_col`, `plate_col`, `fix_beta1`,
-  `fix_kappa`).
+  `fix_kappa`). The i-spi-compute worker stores them in
+  `calib_weights_fit.fit_options` (curveRcore >= 0.7.1).
+
+## The same diagnostics for both models
+
+Both fits are Bayesian location-scale models sampled with Stan, so both now
+report the same entries in `$diagnostics` (and `$estimates$diagnostics` from
+`fit_precision_weights()`):
+
+* `rhat_max`, `n_divergent` (already there) and new `ess_min`, the lowest
+  bulk or tail effective sample size over the sampled parameters (via the
+  posterior package, now in Imports).
+* `ident_sd_ratio`: posterior SD / prior SD of the key scale parameter. For the
+  additive model it is the existing kappa ratio (now read from the
+  `prior_lkappa` actually used rather than assumed 0.5); for the
+  multiplicative model it is new, for beta1 (NA when the slope is dropped).
+* `resid_sd`, `resid_sd_ratio`: a variance-model check. The scaled residuals
+  (y - fitted mean) / sigma of the quantified rows should have SD 1
+  everywhere; `resid_sd` is their robust SD, `resid_sd_ratio` the robust SD in
+  the lowest-se fifth over that in the highest-se fifth (above 1: low-se
+  samples are given too much weight).
+
+The weights themselves are unchanged: the diagnostics are computed after the
+fit (the multiplicative weights are identical to 0.3.1 before this change for
+the same seed).
 
 ## Bug fix
 
@@ -27,8 +51,7 @@
   the ceiling 1/tau^2 on the weights is lost, and sampling is poor (high Rhat,
   treedepth warnings in a two-dilution simulation). A formulation in which the
   sample term *is* the signal (residual = measurement error only) is planned.
-  `fit_precision_weights()` does not pass it on. The i-spi-compute worker stores them in
-  `calib_weights_fit.fit_options` (curveRcore >= 0.7.1).
+  `fit_precision_weights()` does not pass it on.
 
 ## Documentation
 
@@ -36,7 +59,8 @@
   tau is the variation *within* a person and reliability is a within-person
   reliability; reliability belongs to the calibration method that produced the
   `se` (Bayesian and frequentist `se` can split the variance very differently);
-  how to read kappa far from 1; `fix_kappa`.
+  how to read kappa far from 1; `fix_kappa`; a new section on checking a fit
+  with the diagnostics both models share.
 
 ## Tests
 

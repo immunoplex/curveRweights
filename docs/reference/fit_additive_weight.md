@@ -143,7 +143,12 @@ intervals (`tau_CI`, `kappa_CI`, `beta1_CI`), overall `reliability` and
 `reliability_CI` (\\\tau^2/(\tau^2 + \bar v)\\ over quantified rows),
 `data` (the full input with the weight columns of
 [`compute_additive_weights()`](https://immunoplex.github.io/curveRweights/reference/compute_additive_weights.md)),
-`diagnostics`, `formula` and `priors_used`.
+`diagnostics` (both models report the same convergence and model-check
+entries: `rhat_max`, `n_divergent`, `ess_min` (lowest bulk or tail ESS),
+`ident_sd_ratio` (posterior SD / prior SD of the key scale parameter),
+`resid_sd` and `resid_sd_ratio` (robust SD of the scaled residuals
+overall, and lowest-se fifth / highest-se fifth), with `kappa_sd_ratio`
+the same as `ident_sd_ratio`), `formula` and `priors_used`.
 
 ## In plain terms
 

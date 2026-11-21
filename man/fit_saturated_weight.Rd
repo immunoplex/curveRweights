@@ -59,8 +59,13 @@ Create this externally, e.g.
 Named list (see original documentation): \code{fit}, \code{phi},
 \code{beta1}, \code{gamma_0}, \code{gamma_1}, credible intervals,
 \code{interpretation}, \code{effective_se_power}, \code{data},
-\code{diagnostics}, \code{cv_diagnostics}, \code{formula},
-\code{priors_used}.
+\code{diagnostics} (both models report the same convergence and
+model-check entries: \code{rhat_max}, \code{n_divergent}, \code{ess_min}
+(lowest bulk or tail ESS), \code{ident_sd_ratio} (posterior SD / prior SD
+of the key scale parameter), \code{resid_sd} and \code{resid_sd_ratio}
+(robust SD of the scaled residuals overall, and lowest-se fifth / highest-se
+fifth), here for \code{beta1}, NA when the slope was dropped),
+\code{cv_diagnostics}, \code{formula}, \code{priors_used}.
 }
 \description{
 Fits a brms Gaussian location-scale model where the location uses saturated

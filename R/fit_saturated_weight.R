@@ -37,8 +37,13 @@
 #' @return Named list (see original documentation): \code{fit}, \code{phi},
 #'   \code{beta1}, \code{gamma_0}, \code{gamma_1}, credible intervals,
 #'   \code{interpretation}, \code{effective_se_power}, \code{data},
-#'   \code{diagnostics}, \code{cv_diagnostics}, \code{formula},
-#'   \code{priors_used}.
+#'   \code{diagnostics} (both models report the same convergence and
+#'   model-check entries: \code{rhat_max}, \code{n_divergent}, \code{ess_min}
+#'   (lowest bulk or tail ESS), \code{ident_sd_ratio} (posterior SD / prior SD
+#'   of the key scale parameter), \code{resid_sd} and \code{resid_sd_ratio}
+#'   (robust SD of the scaled residuals overall, and lowest-se fifth / highest-se
+#'   fifth), here for \code{beta1}, NA when the slope was dropped),
+#'   \code{cv_diagnostics}, \code{formula}, \code{priors_used}.
 #'
 #' @seealso [fit_precision_weights()] for the curveR-ecosystem entry point that
 #'   wraps this estimator, [as_weight_data()], [prepare_cv()], [diagnose_cv()],
@@ -100,8 +105,9 @@ fit_saturated_weight <- function(
                   predictor         = predictor,
                   response_is_log10 = response_is_log10)
 
-  d_fit <- d[is.finite(d$yi) & is.finite(d$cv_i) & d$cv_i > 0 &
-               is.finite(d$log_cv), , drop = FALSE]
+  fit_rows <- is.finite(d$yi) & is.finite(d$cv_i) & d$cv_i > 0 &
+    is.finite(d$log_cv)
+  d_fit <- d[fit_rows, , drop = FALSE]
 
   n_input   <- nrow(df)
   n_fit     <- nrow(d_fit)
@@ -157,10 +163,9 @@ fit_saturated_weight <- function(
   )
 
   # ---- Convergence diagnostics ---------------------------------------------
-  rhat_max <- max(brms::rhat(fit), na.rm = TRUE)
-  n_div    <- tryCatch(
-    sum(brms::nuts_params(fit, pars = "divergent__")$Value),
-    error = function(e) NA_integer_)
+  sdiag    <- .sampling_diagnostics(fit)
+  rhat_max <- sdiag$rhat_max
+  n_div    <- sdiag$n_divergent
   if (!is.na(rhat_max) && rhat_max > 1.05)
     warning("fit_saturated_weight: Rhat = ", signif(rhat_max, 4),
             " > 1.05 --- chains may not have converged")
@@ -199,6 +204,12 @@ fit_saturated_weight <- function(
               "Available rows: ", paste(sig_rows, collapse = ", "))
   }
 
+  # identifiability of the slope: posterior SD of gamma_1 relative to its
+  # prior SD (near 1: the data barely moved it from the prior)
+  err_col <- sig_cols[grepl("Error", sig_cols, fixed = TRUE)]
+  beta1_sd_ratio <- if (use_cv_slope && length(log_cv_row) >= 1 && length(err_col))
+    unname(sig_fix[log_cv_row[1], err_col[1]]) / .prior_sd(prior_gamma1) else NA_real_
+
   phi    <- exp(gamma_0); phi_lo <- exp(gamma_0_lo); phi_hi <- exp(gamma_0_hi)
   beta1  <- gamma_1
   interp <- interpret_beta1(beta1, gamma_1_lo, gamma_1_hi)
@@ -218,6 +229,15 @@ fit_saturated_weight <- function(
           " (ratio = ", w_diag$eff_ratio, ")")
   message("  weight_ratio = ", w_diag$weight_ratio, "  gini = ", w_diag$gini)
 
+  # variance-model check on the fitted rows (see .resid_check())
+  mu_hat <- .posterior_mu(fit)
+  rchk <- if (!is.null(mu_hat) && length(mu_hat) == nrow(d_fit))
+    .resid_check(d_fit$yi, mu_hat, d_out$sigma_i[fit_rows], d_fit$cv_i)
+  else list(resid_sd = NA_real_, resid_sd_ratio = NA_real_)
+  message("  ESS (min) = ", signif(sdiag$ess_min, 3),
+          "  residual SD = ", signif(rchk$resid_sd, 3),
+          "  low/high-se residual SD ratio = ", signif(rchk$resid_sd_ratio, 3))
+
   plate_sd <- NA_real_
   if (has_plate) {
     vc <- brms::VarCorr(fit)
@@ -235,7 +255,10 @@ fit_saturated_weight <- function(
     diagnostics = list(
       n_input = n_input, n_fit = n_fit, n_removed = n_removed,
       n_cells = n_cells, rhat_max = signif(rhat_max, 4),
-      n_divergent = n_div,
+      n_divergent = n_div, ess_min = signif(sdiag$ess_min, 4),
+      ident_sd_ratio = signif(beta1_sd_ratio, 3),
+      resid_sd = signif(rchk$resid_sd, 3),
+      resid_sd_ratio = signif(rchk$resid_sd_ratio, 3),
       plate_sd = if (has_plate) signif(plate_sd, 4) else NULL,
       predictor = predictor, weight = w_diag
     ),

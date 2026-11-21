@@ -102,6 +102,7 @@ sw <- fit_saturated_weight(dat_prn, cell_col = "cell", pcov_col = "pcov",
 #>   interpretation: moderate precision weighting
 #>   n_eff = 415.1 of 506 (ratio = 0.82)
 #>   weight_ratio = 1027  gini = 0.259
+#>   ESS (min) = 191  residual SD = 1.04  low/high-se residual SD ratio = 1.44
 
 # Build a scale_table manually (or use batch$scale_table)
 st <- data.frame(antigen = "prn", phi = sw$phi, beta1 = sw$beta1)

@@ -86,7 +86,13 @@
 #'   \code{beta1_CI}), overall \code{reliability} and \code{reliability_CI}
 #'   (\eqn{\tau^2/(\tau^2 + \bar v)} over quantified rows), \code{data} (the full
 #'   input with the weight columns of [compute_additive_weights()]),
-#'   \code{diagnostics}, \code{formula} and \code{priors_used}.
+#'   \code{diagnostics} (both models report the same convergence and
+#'   model-check entries: \code{rhat_max}, \code{n_divergent}, \code{ess_min}
+#'   (lowest bulk or tail ESS), \code{ident_sd_ratio} (posterior SD / prior SD
+#'   of the key scale parameter), \code{resid_sd} and \code{resid_sd_ratio}
+#'   (robust SD of the scaled residuals overall, and lowest-se fifth / highest-se
+#'   fifth), with \code{kappa_sd_ratio} the same as \code{ident_sd_ratio}),
+#'   \code{formula} and \code{priors_used}.
 #'
 #' @seealso [fit_precision_weights()], [compute_additive_weights()],
 #'   [prepare_censoring()]
@@ -208,9 +214,9 @@ fit_additive_weight <- function(
                     stop("fit_additive_weight: brms::brm() failed: ",
                          conditionMessage(e)))
 
-  rhat_max <- max(brms::rhat(fit), na.rm = TRUE)
-  n_div <- tryCatch(sum(brms::nuts_params(fit, pars = "divergent__")$Value),
-                    error = function(e) NA_integer_)
+  sdiag    <- .sampling_diagnostics(fit)
+  rhat_max <- sdiag$rhat_max
+  n_div    <- sdiag$n_divergent
   if (!is.na(rhat_max) && rhat_max > 1.05)
     warning("fit_additive_weight: Rhat = ", signif(rhat_max, 4),
             " > 1.05 --- chains may not have converged")
@@ -237,7 +243,8 @@ fit_additive_weight <- function(
 
   # identifiability: if the data barely move log(kappa) away from its prior the
   # signal/measurement split is being decided by the prior.
-  sd_prior <- 0.5
+  sd_prior <- .prior_sd(prior_lkappa)
+  if (!is.finite(sd_prior) || sd_prior <= 0) sd_prior <- 0.5
   kappa_ratio <- if (fix_kappa) NA_real_ else stats::sd(lkap) / sd_prior
   ident <- if (fix_kappa)
     "kappa fixed at 1 (the curve's se is taken as the measurement SD)"
@@ -269,6 +276,18 @@ fit_additive_weight <- function(
   message("  overall reliability = ", signif(rel, 3), "   weight_ratio = ",
           w_diag$weight_ratio, "   n_eff = ", w_diag$n_eff)
 
+  # variance-model check on the quantified fitted rows (see .resid_check());
+  # censored rows carry their bound, not a measured value, so they are left out
+  mu_hat <- .posterior_mu(fit)
+  rchk <- if (!is.null(mu_hat) && length(mu_hat) == nrow(d_fit)) {
+    qf <- d_fit$cens_flag %in% 0L
+    .resid_check(d_fit$yi[qf], mu_hat[qf], d_out$sigma_total[use][qf],
+                 d_fit$se_meas[qf])
+  } else list(resid_sd = NA_real_, resid_sd_ratio = NA_real_)
+  message("  ESS (min) = ", signif(sdiag$ess_min, 3),
+          "  residual SD = ", signif(rchk$resid_sd, 3),
+          "  low/high-se residual SD ratio = ", signif(rchk$resid_sd_ratio, 3))
+
   # VarCorr() errors on a model with no group terms (no patient term and a
   # single plate), so only ask for it when there are some
   vc <- if (length(groups)) brms::VarCorr(fit) else list()
@@ -286,6 +305,10 @@ fit_additive_weight <- function(
       n_input = n_input, n_fit = n_fit, n_removed = n_input - n_fit,
       n_cells = n_cells, n_by_censoring = as.list(n_cens),
       rhat_max = signif(rhat_max, 4), n_divergent = n_div,
+      ess_min = signif(sdiag$ess_min, 4),
+      ident_sd_ratio = signif(kappa_ratio, 3),
+      resid_sd = signif(rchk$resid_sd, 3),
+      resid_sd_ratio = signif(rchk$resid_sd_ratio, 3),
       group_sd = if (length(gsd)) signif(gsd, 4) else NULL,
       fix_beta1 = fix_beta1, fix_kappa = fix_kappa, identifiability = ident,
       kappa_sd_ratio = signif(kappa_ratio, 3), weight = w_diag),

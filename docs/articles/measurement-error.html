@@ -531,6 +531,93 @@ reliabilities rest heavily on
 and should be read with care.</p>
 </div>
 <div class="section level2">
+<h2 id="diagnostics">Checking a fit: the same diagnostics for both models<a class="anchor" aria-label="anchor" href="#diagnostics"></a>
+</h2>
+<p>Both models are fitted the same way, as a Bayesian location-scale
+model (one mean per design cell, a plate term, and a model for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\sigma_i</annotation></semantics></math>)
+sampled with Stan. Only the variance model differs. So both report the
+same checks in <code>$diagnostics</code>, and the worker stores them in
+<code>calib_weights_fit</code>:</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Entry</th>
+<th>Question</th>
+<th>Worry when</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>rhat_max</code></td>
+<td>Did the chains agree?</td>
+<td>above 1.05</td>
+</tr>
+<tr class="even">
+<td><code>n_divergent</code></td>
+<td>Could the sampler explore the posterior?</td>
+<td>any</td>
+</tr>
+<tr class="odd">
+<td><code>ess_min</code></td>
+<td>Enough effective draws for stable intervals?</td>
+<td>below about 400</td>
+</tr>
+<tr class="even">
+<td><code>ident_sd_ratio</code></td>
+<td>Did the data, not the prior, set
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+(additive) or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\beta_1</annotation></semantics></math>
+(multiplicative)?</td>
+<td>above 0.8; above 1 suggests a sampling problem</td>
+</tr>
+<tr class="odd">
+<td><code>resid_sd</code></td>
+<td>Does the variance model fit the overall scatter?</td>
+<td>far from 1</td>
+</tr>
+<tr class="even">
+<td><code>resid_sd_ratio</code></td>
+<td>Does it fit equally at low and high
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">se</annotation></semantics></math>?</td>
+<td>far from 1</td>
+</tr>
+</tbody>
+</table>
+<p>The residual check is the one that compares the models directly. Each
+quantified sample’s scaled residual
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>i</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><msub><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">z_i = (y_i - \hat\mu_i)/\hat\sigma_i</annotation></semantics></math>
+should have SD 1 wherever
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><msub><mi>e</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">se_i</annotation></semantics></math>
+lies. <code>resid_sd_ratio</code> divides the (robust) SD of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+in the
+lowest-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">se</annotation></semantics></math>
+fifth by that in the
+highest-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">se</annotation></semantics></math>
+fifth. When people really differ, the multiplicative model has no floor
+for that variation: precisely measured samples scatter more than their
+small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\sigma_i</annotation></semantics></math>
+allows, the ratio rises above 1, and those samples get too much weight.
+The additive model’s
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>τ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\tau^2</annotation></semantics></math>
+is that floor.</p>
+<p>A sampling problem (high R-hat, divergences, low ESS, or a posterior
+wider than its prior) means the numbers cannot be relied on: run longer
+chains (<code>iter</code>), and for the additive model consider
+<code>fix_kappa = TRUE</code>, which removes the trade-off between
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+but moves any extra measurement error into
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>.</p>
+</div>
+<div class="section level2">
 <h2 id="glossary">Glossary<a class="anchor" aria-label="anchor" href="#glossary"></a>
 </h2>
 <table class="table">

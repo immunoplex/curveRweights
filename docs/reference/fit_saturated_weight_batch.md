@@ -112,6 +112,7 @@ batch <- fit_saturated_weight_batch(
 #>   interpretation: moderate precision weighting
 #>   n_eff = 415.1 of 506 (ratio = 0.82)
 #>   weight_ratio = 1027  gini = 0.259
+#>   ESS (min) = 191  residual SD = 1.04  low/high-se residual SD ratio = 1.44
 #> 
 #> [2/3] antigen=pt
 #> fit_saturated_weight: 511 of 512 observations usable (1 removed); 8 cell levels
@@ -124,6 +125,7 @@ batch <- fit_saturated_weight_batch(
 #>   interpretation: compressed precision weighting
 #>   n_eff = 411.6 of 511 (ratio = 0.805)
 #>   weight_ratio = 859.6  gini = 0.277
+#>   ESS (min) = 335  residual SD = 1.1  low/high-se residual SD ratio = 1.79
 #> 
 #> [3/3] antigen=fha
 #> fit_saturated_weight: 511 of 512 observations usable (1 removed); 8 cell levels
@@ -142,6 +144,7 @@ batch <- fit_saturated_weight_batch(
 #>   interpretation: calibrated (pcov ~ residual SD)
 #>   n_eff = 288.3 of 511 (ratio = 0.564)
 #>   weight_ratio = 24060  gini = 0.469
+#>   ESS (min) = 81.1  residual SD = 0.895  low/high-se residual SD ratio = 1.87
 
 # Scale summary: one row per antigen
 batch$scale_table

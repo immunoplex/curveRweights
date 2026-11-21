@@ -90,8 +90,13 @@ fit_saturated_weight(
 
 Named list (see original documentation): `fit`, `phi`, `beta1`,
 `gamma_0`, `gamma_1`, credible intervals, `interpretation`,
-`effective_se_power`, `data`, `diagnostics`, `cv_diagnostics`,
-`formula`, `priors_used`.
+`effective_se_power`, `data`, `diagnostics` (both models report the same
+convergence and model-check entries: `rhat_max`, `n_divergent`,
+`ess_min` (lowest bulk or tail ESS), `ident_sd_ratio` (posterior SD /
+prior SD of the key scale parameter), `resid_sd` and `resid_sd_ratio`
+(robust SD of the scaled residuals overall, and lowest-se fifth /
+highest-se fifth), here for `beta1`, NA when the slope was dropped),
+`cv_diagnostics`, `formula`, `priors_used`.
 
 ## Details
 

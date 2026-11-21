@@ -44,8 +44,19 @@
 <code>fix_kappa</code> (in <code><a href="../reference/fit_additive_weight.html">fit_additive_weight()</a></code>, passed on by <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code>): fix kappa = 1, i.e. take the calibration curve’s <code>se</code> as the measurement SD and estimate only tau. For data whose <code>se</code> barely varies, where kappa is weakly identified. The identifiability note says that kappa was fixed.</li>
 <li>
 <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code> accepts <code>patient_col = NA</code> to leave out the subject random intercept.</li>
-<li>The additive result’s <code>$estimates$options</code> records the options actually applied (<code>use_censoring</code>, <code>patient_col</code>, <code>plate_col</code>, <code>fix_beta1</code>, <code>fix_kappa</code>).</li>
+<li>The additive result’s <code>$estimates$options</code> records the options actually applied (<code>use_censoring</code>, <code>patient_col</code>, <code>plate_col</code>, <code>fix_beta1</code>, <code>fix_kappa</code>). The i-spi-compute worker stores them in <code>calib_weights_fit.fit_options</code> (curveRcore &gt;= 0.7.1).</li>
 </ul></div>
+<div class="section level3">
+<h3 id="the-same-diagnostics-for-both-models-0-3-1">The same diagnostics for both models<a class="anchor" aria-label="anchor" href="#the-same-diagnostics-for-both-models-0-3-1"></a></h3>
+<p>Both fits are Bayesian location-scale models sampled with Stan, so both now report the same entries in <code>$diagnostics</code> (and <code>$estimates$diagnostics</code> from <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code>):</p>
+<ul><li>
+<code>rhat_max</code>, <code>n_divergent</code> (already there) and new <code>ess_min</code>, the lowest bulk or tail effective sample size over the sampled parameters (via the posterior package, now in Imports).</li>
+<li>
+<code>ident_sd_ratio</code>: posterior SD / prior SD of the key scale parameter. For the additive model it is the existing kappa ratio (now read from the <code>prior_lkappa</code> actually used rather than assumed 0.5); for the multiplicative model it is new, for beta1 (NA when the slope is dropped).</li>
+<li>
+<code>resid_sd</code>, <code>resid_sd_ratio</code>: a variance-model check. The scaled residuals (y - fitted mean) / sigma of the quantified rows should have SD 1 everywhere; <code>resid_sd</code> is their robust SD, <code>resid_sd_ratio</code> the robust SD in the lowest-se fifth over that in the highest-se fifth (above 1: low-se samples are given too much weight).</li>
+</ul><p>The weights themselves are unchanged: the diagnostics are computed after the fit (the multiplicative weights are identical to 0.3.1 before this change for the same seed).</p>
+</div>
 <div class="section level3">
 <h3 id="bug-fix-0-3-1">Bug fix<a class="anchor" aria-label="anchor" href="#bug-fix-0-3-1"></a></h3>
 <ul><li>
@@ -54,11 +65,11 @@
 <div class="section level3">
 <h3 id="known-limitation-0-3-1">Known limitation<a class="anchor" aria-label="anchor" href="#known-limitation-0-3-1"></a></h3>
 <ul><li>
-<code>fit_additive_weight(sample_col = )</code> (several readings of one sample) is not recommended. With the sample intercept in the location, the sample term absorbs the real between-sample variation and tau is left to describe only the extra scatter between readings of one sample; tau then tends to zero, the ceiling 1/tau^2 on the weights is lost, and sampling is poor (high Rhat, treedepth warnings in a two-dilution simulation). A formulation in which the sample term <em>is</em> the signal (residual = measurement error only) is planned. <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code> does not pass it on. The i-spi-compute worker stores them in <code>calib_weights_fit.fit_options</code> (curveRcore &gt;= 0.7.1).</li>
+<code>fit_additive_weight(sample_col = )</code> (several readings of one sample) is not recommended. With the sample intercept in the location, the sample term absorbs the real between-sample variation and tau is left to describe only the extra scatter between readings of one sample; tau then tends to zero, the ceiling 1/tau^2 on the weights is lost, and sampling is poor (high Rhat, treedepth warnings in a two-dilution simulation). A formulation in which the sample term <em>is</em> the signal (residual = measurement error only) is planned. <code><a href="../reference/fit_precision_weights.html">fit_precision_weights()</a></code> does not pass it on.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-0-3-1">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-3-1"></a></h3>
-<ul><li>Measurement-error vignette: with the subject random intercept in the model, tau is the variation <em>within</em> a person and reliability is a within-person reliability; reliability belongs to the calibration method that produced the <code>se</code> (Bayesian and frequentist <code>se</code> can split the variance very differently); how to read kappa far from 1; <code>fix_kappa</code>.</li>
+<ul><li>Measurement-error vignette: with the subject random intercept in the model, tau is the variation <em>within</em> a person and reliability is a within-person reliability; reliability belongs to the calibration method that produced the <code>se</code> (Bayesian and frequentist <code>se</code> can split the variance very differently); how to read kappa far from 1; <code>fix_kappa</code>; a new section on checking a fit with the diagnostics both models share.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="tests-0-3-1">Tests<a class="anchor" aria-label="anchor" href="#tests-0-3-1"></a></h3>

@@ -135,8 +135,13 @@ Create this externally, e.g.
     <p>Named list (see original documentation): <code>fit</code>, <code>phi</code>,
 <code>beta1</code>, <code>gamma_0</code>, <code>gamma_1</code>, credible intervals,
 <code>interpretation</code>, <code>effective_se_power</code>, <code>data</code>,
-<code>diagnostics</code>, <code>cv_diagnostics</code>, <code>formula</code>,
-<code>priors_used</code>.</p>
+<code>diagnostics</code> (both models report the same convergence and
+model-check entries: <code>rhat_max</code>, <code>n_divergent</code>, <code>ess_min</code>
+(lowest bulk or tail ESS), <code>ident_sd_ratio</code> (posterior SD / prior SD
+of the key scale parameter), <code>resid_sd</code> and <code>resid_sd_ratio</code>
+(robust SD of the scaled residuals overall, and lowest-se fifth / highest-se
+fifth), here for <code>beta1</code>, NA when the slope was dropped),
+<code>cv_diagnostics</code>, <code>formula</code>, <code>priors_used</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

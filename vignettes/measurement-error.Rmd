@@ -296,6 +296,37 @@ the readings scatter much more than their `se` suggests, or that the `se`
 barely changes between samples whose real precision differs; either way the
 reliabilities rest heavily on $\kappa$ and should be read with care.
 
+# Checking a fit: the same diagnostics for both models {#diagnostics}
+
+Both models are fitted the same way, as a Bayesian location-scale model
+(one mean per design cell, a plate term, and a model for $\sigma_i$) sampled
+with Stan. Only the variance model differs. So both report the same checks in
+`$diagnostics`, and the worker stores them in `calib_weights_fit`:
+
+| Entry | Question | Worry when |
+|---|---|---|
+| `rhat_max` | Did the chains agree? | above 1.05 |
+| `n_divergent` | Could the sampler explore the posterior? | any |
+| `ess_min` | Enough effective draws for stable intervals? | below about 400 |
+| `ident_sd_ratio` | Did the data, not the prior, set $\kappa$ (additive) or $\beta_1$ (multiplicative)? | above 0.8; above 1 suggests a sampling problem |
+| `resid_sd` | Does the variance model fit the overall scatter? | far from 1 |
+| `resid_sd_ratio` | Does it fit equally at low and high $se$? | far from 1 |
+
+The residual check is the one that compares the models directly. Each
+quantified sample's scaled residual $z_i = (y_i - \hat\mu_i)/\hat\sigma_i$
+should have SD 1 wherever $se_i$ lies. `resid_sd_ratio` divides the (robust)
+SD of $z$ in the lowest-$se$ fifth by that in the highest-$se$ fifth. When
+people really differ, the multiplicative model has no floor for that
+variation: precisely measured samples scatter more than their small $\sigma_i$
+allows, the ratio rises above 1, and those samples get too much weight. The
+additive model's $\tau^2$ is that floor.
+
+A sampling problem (high R-hat, divergences, low ESS, or a posterior wider
+than its prior) means the numbers cannot be relied on: run longer chains
+(`iter`), and for the additive model consider `fix_kappa = TRUE`, which removes
+the trade-off between $\tau$ and $\kappa$ but moves any extra measurement
+error into $\tau$.
+
 # Glossary {#glossary}
 
 | Term | Plain meaning |
